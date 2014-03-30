@@ -7,4 +7,4 @@ lex.yy.c: lex/c-.l
 	flex lex/c-.l
 
 clean:
-	-@rm *.o lex.yy.c 20091631 
+	-rm *.o lex.yy.c 20091631 
