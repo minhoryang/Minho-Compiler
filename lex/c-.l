@@ -6,6 +6,7 @@
 /****************************************************/
 
 %{
+#include <stdbool.h>
 #include "globals.h"
 #include "util.h"
 #include "scan.h"
@@ -54,12 +55,29 @@ whitespace  [ \t]+
 {newline}       {lineno++;}
 {whitespace}    {/* skip whitespace */}
 
-"/*"             { char c;
+"/*"             { char c; bool assume_comment = false;
                   do
                   { c = input();
-                    if (c == EOF) break;
-                    if (c == '\n') lineno++;
-                  } while (c != '}');
+					if(assume_comment){
+						if(c == '/'){
+							break;
+						}else{
+							assume_comment = false;
+						}
+					}
+					switch(c){
+						case EOF:
+							return ERROR;
+						case '\n':
+							lineno++;
+							break;
+						case '*':
+							assume_comment = true;
+							break;
+						default:
+							break;
+					}
+                  } while (true);
                 }
 
 .               {return ERROR;}
