@@ -61,7 +61,8 @@ main( int argc, char * argv[] )
     exit(1);
   }
   listing = stdout; /* send listing to screen */
-  fprintf(listing,"\nCMINUS COMPILATION: %s\n",pgm);
+  fprintf(listing,"%12s%20s\t%s\n", "line number", "token", "lexeme");
+  fprintf(listing,"-----------------------------------------------\n");
 #if NO_PARSE
   while (getToken()!=ENDFILE);
 #else

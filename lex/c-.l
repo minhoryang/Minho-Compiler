@@ -9,48 +9,59 @@
 #include "globals.h"
 #include "util.h"
 #include "scan.h"
-/* lexeme of identifier or reserved word */
+/* lexeme of ID or reserved word */
 char tokenString[MAXTOKENLEN+1];
 %}
 
-digit       [0-9]
-number      {digit}+
+ID  {letter}+
+NUM      {digit}+
 letter      [a-zA-Z]
-identifier  {letter}+
+digit       [0-9]
 newline     \n
 whitespace  [ \t]+
 
 %%
 
-"if"            {return IF;}
-"then"          {return THEN;}
-"else"          {return ELSE;}
-"end"           {return END;}
-"repeat"        {return REPEAT;}
-"until"         {return UNTIL;}
-"read"          {return READ;}
-"write"         {return WRITE;}
-":="            {return ASSIGN;}
-"="             {return EQ;}
-"<"             {return LT;}
-"+"             {return PLUS;}
-"-"             {return MINUS;}
-"*"             {return TIMES;}
-"/"             {return OVER;}
-"("             {return LPAREN;}
-")"             {return RPAREN;}
-";"             {return SEMI;}
-{number}        {return NUM;}
-{identifier}    {return ID;}
+"else"	{return ELSE;}
+"if"	{return IF;}
+"int"	{return INT;}
+"return"	{return RETURN;}
+"void"	{return VOID;}
+"while"	{return WHILE;}
+
+"+"	{return PLUS;}
+"-"	{return MINUS;}
+"*"	{return TIMES;}
+"/"	{return OVER;}
+"<"	{return LESS_THAN;}
+"<="	{return LESS_EQUAL;}
+">"	{return GREATER_THAN;}
+">="	{return GREATER_EQUAL;}
+"=="	{return EQUAL;}
+"!="	{return NOT_EQUAL;}
+"="	{return ASSIGN;}
+";"	{return SEMI;}
+","	{return COMMA;}
+"("	{return LEFT_PARENTHESIS;}
+")"	{return RIGHT_PARENTHESIS;}
+"["	{return LEFT_BRACKET;}
+"]"	{return RIGHT_BRACKET;}
+"{"	{return LEFT_BRACE;}
+"}"	{return RIGHT_BRACE;}
+
+{NUM}        {return NUM;}
+{ID}    {return ID;}
 {newline}       {lineno++;}
 {whitespace}    {/* skip whitespace */}
-"{"             { char c;
+
+"/*"             { char c;
                   do
                   { c = input();
                     if (c == EOF) break;
                     if (c == '\n') lineno++;
                   } while (c != '}');
                 }
+
 .               {return ERROR;}
 
 %%
@@ -67,7 +78,6 @@ TokenType getToken(void)
   currentToken = yylex();
   strncpy(tokenString,yytext,MAXTOKENLEN);
   if (TraceScan) {
-    fprintf(listing,"\t%d: ",lineno);
     printToken(currentToken,tokenString);
   }
   return currentToken;
