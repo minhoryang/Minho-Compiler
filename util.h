@@ -1,6 +1,6 @@
 /****************************************************/
 /* File: util.h                                     */
-/* Utility functions for the TINY compiler          */
+/* Utility functions for the CMINUS compiler        */
 /* Compiler Construction: Principles and Practice   */
 /* Kenneth C. Louden                                */
 /****************************************************/

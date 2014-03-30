@@ -1,6 +1,6 @@
 /****************************************************/
 /* File: tiny.l                                     */
-/* Lex specification for TINY                       */
+/* Lex specification for CMINUS                     */
 /* Compiler Construction: Principles and Practice   */
 /* Kenneth C. Louden                                */
 /****************************************************/

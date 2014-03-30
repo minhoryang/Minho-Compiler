@@ -1,7 +1,7 @@
 /****************************************************/
 /* File: util.c                                     */
 /* Utility function implementation                  */
-/* for the TINY compiler                            */
+/* for the CMINUS compiler                          */
 /* Compiler Construction: Principles and Practice   */
 /* Kenneth C. Louden                                */
 /****************************************************/
