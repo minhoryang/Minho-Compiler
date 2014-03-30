@@ -3,8 +3,8 @@
 
 lex.yy.o: lex.yy.c
 
-lex.yy.c: lex/tiny.l
-	flex lex/tiny.l
+lex.yy.c: lex/c-.l
+	flex lex/c-.l
 
 clean:
 	-rm *.o lex.yy.c 20091631 
