@@ -55,7 +55,7 @@ whitespace  [ \t]+
 {newline}       {lineno++;}
 {whitespace}    {/* skip whitespace */}
 
-"/*"             { char c; bool assume_comment = false;
+"/*"             { char c; bool assume_comment = false, assume_warn = false, real_warn = false;
                   do
                   { c = input();
 					if(assume_comment){
@@ -63,6 +63,12 @@ whitespace  [ \t]+
 							break;
 						}else{
 							assume_comment = false;
+						}
+					}else if(assume_warn){
+						if(c == '*'){
+							real_warn = true;
+						}else{
+							assume_warn = false;
 						}
 					}
 					switch(c){
@@ -74,10 +80,15 @@ whitespace  [ \t]+
 						case '*':
 							assume_comment = true;
 							break;
+						case '/':
+							assume_warn = true;
+							break;
 						default:
 							break;
 					}
                   } while (true);
+				  if(real_warn)
+					  return WARN;
                 }
 
 .               {return ERROR;}

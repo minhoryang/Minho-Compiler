@@ -27,7 +27,7 @@
 
 typedef enum 
     /* book-keeping tokens */
-   {ENDFILE=0,ERROR,
+   {ENDFILE=0,ERROR,WARN,
     /* reserved words */
 	ELSE,IF,INT,RETURN,VOID,WHILE,
     /* multicharacter tokens */

@@ -1,0 +1,18 @@
+/* test1.tny */
+
+int main(void){
+	int a = 0;
+	while(1){  /*  Infinite Loop */
+		a = a + 1;  /* a =+ 1 */
+		if(a >= 10){
+			return 2;
+		}else{
+			return 1;
+			/* AFAIK, above code
+			   is not good code. */
+		}
+	}
+	return /* IGNORE HERE! */ 0;
+}
+/* This isn't good comment...
+   will met EOF @ next line.

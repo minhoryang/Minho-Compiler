@@ -9,8 +9,8 @@
 #include "globals.h"
 #include "util.h"
 
-char TokenName[29][20] =
-   {"ENDFILE","ERROR",
+char TokenName[30][20] =
+   {"ENDFILE","ERROR","WARN",
     /* reserved words */
 	"ELSE","IF","INT","RETURN","VOID","WHILE",
     /* multicharacter tokens */
