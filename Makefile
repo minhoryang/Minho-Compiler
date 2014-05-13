@@ -1,4 +1,4 @@
-20091631: main.o util.o yywrap.o lex.yy.o
+20091631: main.o util.o lex.yy.o
 	gcc -o 20091631 *.o
 
 lex.yy.o: lex.yy.c

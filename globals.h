@@ -22,9 +22,6 @@
 #define TRUE 1
 #endif
 
-/* MAXRESERVED = the number of reserved words */
-#define MAXRESERVED 8
-
 typedef enum 
     /* book-keeping tokens */
    {ENDFILE=0,ERROR,WARN,
