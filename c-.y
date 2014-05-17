@@ -3,9 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-	#define NONONON
-#define YYDEBUG 1
-#define YYERROR_VERBOSE 1
+#define YYERROR_VERBOSE true
 %}
 
 %token <token> ENDFILE ERROR WARN
