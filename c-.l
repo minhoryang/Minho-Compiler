@@ -7,11 +7,14 @@
 
 %{
 #include <stdbool.h>
+#include <string.h>
 #include "globals.h"
-#include "util.h"
-#include "scan.h"
-/* lexeme of ID or reserved word */
-char tokenString[MAXTOKENLEN+1];
+#include "parse.h"
+
+#define RETURN_LEXEME(ret) \
+	yylval.token_with_lexeme.lexeme = strdup(yytext); \
+	yylval.token_with_lexeme.token = ret; \
+	return ret;
 %}
 
 ID  {letter}+
@@ -50,8 +53,8 @@ whitespace  [ \t]+
 "{"	{return LEFT_BRACE;}
 "}"	{return RIGHT_BRACE;}
 
-{NUM}        {return NUM;}
-{ID}    {return ID;}
+{NUM}        {RETURN_LEXEME(NUM);}
+{ID}    {RETURN_LEXEME(ID);}
 {newline}       {lineno++;}
 {whitespace}    {/* skip whitespace */}
 
@@ -94,23 +97,6 @@ whitespace  [ \t]+
 .               {return ERROR;}
 
 %%
-
-TokenType getToken(void)
-{ static int firstTime = TRUE;
-  TokenType currentToken;
-  if (firstTime)
-  { firstTime = FALSE;
-    lineno++;
-    yyin = source;
-    yyout = listing;
-  }
-  currentToken = yylex();
-  strncpy(tokenString,yytext,MAXTOKENLEN);
-  if (TraceScan) {
-    printToken(currentToken,tokenString);
-  }
-  return currentToken;
-}
 
 int yywrap(void){
 	// http://dinosaur.compilertools.net/flex/flex_10.html

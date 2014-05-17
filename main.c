@@ -7,8 +7,6 @@
 
 #include "globals.h"
 
-/* set NO_PARSE to TRUE to get a scanner-only compiler */
-#define NO_PARSE TRUE
 /* set NO_ANALYZE to TRUE to get a parser-only compiler */
 #define NO_ANALYZE TRUE
 
@@ -17,17 +15,12 @@
  */
 #define NO_CODE FALSE
 
-#include "util.h"
-#if NO_PARSE
-#include "scan.h"
-#else
 #include "parse.h"
 #if !NO_ANALYZE
-#include "analyze.h"
-#if !NO_CODE
-#include "cgen.h"
-#endif
-#endif
+	#include "analyze.h"
+	#if !NO_CODE
+		#include "cgen.h"
+	#endif
 #endif
 
 /* allocate global variables */
@@ -38,7 +31,6 @@ FILE * code;
 
 /* allocate and set tracing flags */
 int EchoSource = TRUE;
-int TraceScan = TRUE;
 int TraceParse = FALSE;
 int TraceAnalyze = FALSE;
 int TraceCode = FALSE;
@@ -61,11 +53,9 @@ main( int argc, char * argv[] )
     exit(1);
   }
   listing = stdout; /* send listing to screen */
-  fprintf(listing,"%12s%20s\t%s\n", "line number", "token", "lexeme");
-  fprintf(listing,"-----------------------------------------------\n");
-#if NO_PARSE
-  while (getToken()!=ENDFILE);
-#else
+
+  yyin = source;
+  yyout = listing;
   syntaxTree = parse();
   if (TraceParse) {
     fprintf(listing,"\nSyntax tree:\n");
@@ -94,7 +84,6 @@ main( int argc, char * argv[] )
     codeGen(syntaxTree,codefile);
     fclose(code);
   }
-#endif
 #endif
 #endif
   fclose(source);

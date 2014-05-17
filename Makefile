@@ -1,10 +1,16 @@
-20091631: main.o util.o lex.yy.o
+CFLAGS = -g -fms-extensions
+
+20091631: lex.yy.o y.tab.o parse.o main.o list.o
 	gcc -o 20091631 *.o
 
-lex.yy.o: lex.yy.c
+y.tab.c: c-.y
+y.tab.h: c-.y
+	yacc -d c-.y
 
-lex.yy.c: c-.l
+lex.yy.c: y.tab.h c-.l
 	flex c-.l
 
 clean:
-	-rm *.o lex.yy.c 20091631 
+	-rm lex.yy.c y.tab.*
+	-rm *.o
+	-rm 20091631

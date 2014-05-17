@@ -22,23 +22,8 @@
 #define TRUE 1
 #endif
 
-typedef enum 
-    /* book-keeping tokens */
-   {ENDFILE=0,ERROR,WARN,
-    /* reserved words */
-	ELSE,IF,INT,RETURN,VOID,WHILE,
-    /* multicharacter tokens */
-    ID,NUM,
-    /* special symbols */
-	PLUS,MINUS,TIMES,OVER,
-	LESS_THAN,LESS_EQUAL,
-	GREATER_THAN,GREATER_EQUAL,
-	EQUAL,NOT_EQUAL,ASSIGN,
-	SEMI,COMMA,
-	LEFT_PARENTHESIS,RIGHT_PARENTHESIS,
-	LEFT_BRACKET,RIGHT_BRACKET,
-	LEFT_BRACE,RIGHT_BRACE
-   } TokenType;
+#include "y.tab.h"
+typedef YYSTYPE TokenType;
 
 extern FILE* source; /* source code text file */
 extern FILE* listing; /* listing output text file */
