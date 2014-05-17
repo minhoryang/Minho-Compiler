@@ -8,24 +8,27 @@
 #define YYERROR_VERBOSE 1
 %}
 
-%token ENDFILE ERROR WARN
-%token ELSE IF INT RETURN VOID WHILE
-%token <token_with_lexeme> ID NUM
-%token PLUS MINUS TIMES OVER
-%token LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL EQUAL NOT_EQUAL ASSIGN
-%token SEMI COMMA
-%token LEFT_PARENTHESIS RIGHT_PARENTHESIS
-%token LEFT_BRACKET RIGHT_BRACKET
-%token LEFT_BRACE RIGHT_BRACE
+%token <token> ENDFILE ERROR WARN
+%token <token> ELSE IF INT RETURN VOID WHILE
+%token <token> ID NUM
+%token <token> PLUS MINUS TIMES OVER
+%token <token> LESS_THAN LESS_EQUAL GREATER_THAN GREATER_EQUAL EQUAL NOT_EQUAL ASSIGN
+%token <token> SEMI COMMA
+%token <token> LEFT_PARENTHESIS RIGHT_PARENTHESIS
+%token <token> LEFT_BRACKET RIGHT_BRACKET
+%token <token> LEFT_BRACE RIGHT_BRACE
 
 %parse-param {void *ptr}
 
 %union {
-	int token;
-	struct token_with_lexeme{
-		int token;
+	struct type{
+		int id;
 		char *lexeme;
-	} token_with_lexeme;
+		int line;
+	}token;
+	struct{
+		int id;
+	};  // anonymous struct.  merge with above.
 }
 
 /* YACC Rule & Action */
@@ -45,12 +48,12 @@ declaration : var_declaration
 			;
 var_declaration : type_specifier ID SEMI
                     {
-						printf("%d %s\n", $2.token, $2.lexeme);
+						printf("%d %s\n", $2.id, $2.lexeme);
 				    }
                 | type_specifier ID LEFT_BRACKET NUM RIGHT_BRACKET SEMI
                     {
-						printf("%d %s\n", $2.token, $2.lexeme);
-						printf("%d %s\n", $4.token, $4.lexeme);
+						printf("%d %s\n", $2.id, $2.lexeme);
+						printf("%d %s\n", $4.id, $4.lexeme);
 				    }
 				;
 type_specifier : INT
@@ -58,7 +61,7 @@ type_specifier : INT
 			   ;
 fun_declaration : type_specifier ID LEFT_PARENTHESIS params RIGHT_PARENTHESIS compound_stmt
                     {
-						printf("%d %s\n", $2.token, $2.lexeme);
+						printf("%d %s\n", $2.id, $2.lexeme);
 					}
                 ;
 params : param_list
@@ -77,11 +80,11 @@ param_list : param_list COMMA param
 		   ;
 param : type_specifier ID
 	      {
-						printf("%d %s\n", $2.token, $2.lexeme);
+						printf("%d %s\n", $2.id, $2.lexeme);
 		  }
       | type_specifier ID LEFT_BRACKET RIGHT_BRACKET
 	      {
-						printf("%d %s\n", $2.token, $2.lexeme);
+						printf("%d %s\n", $2.id, $2.lexeme);
 		  }
 	  ;
 compound_stmt : LEFT_BRACE local_declarations statement_list RIGHT_BRACE
@@ -152,11 +155,11 @@ expression : var ASSIGN expression
 		   ;
 var : ID
         {
-						printf("%d %s\n", $1.token, $1.lexeme);
+						printf("%d %s\n", $1.id, $1.lexeme);
 		}
     | ID LEFT_BRACKET expression RIGHT_BRACKET
 	    {
-						printf("%d %s\n", $1.token, $1.lexeme);
+						printf("%d %s\n", $1.id, $1.lexeme);
 		}
 	;
 simple_expression : additive_expression relop additive_expression
@@ -207,7 +210,7 @@ factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
 		   }
 call : ID LEFT_PARENTHESIS args RIGHT_PARENTHESIS
          {
-						printf("%d %s\n", $1.token, $1.lexeme);
+						printf("%d %s\n", $1.id, $1.lexeme);
 		 }
      ;
 args : arg_list

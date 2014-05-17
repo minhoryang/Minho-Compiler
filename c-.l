@@ -11,10 +11,12 @@
 #include "globals.h"
 #include "parse.h"
 
-#define RETURN_LEXEME(ret) \
-	yylval.token_with_lexeme.lexeme = strdup(yytext); \
-	yylval.token_with_lexeme.token = ret; \
-	return ret;
+#define RETURN_LEXEME(ret) do{\
+	yylval.token.lexeme = strdup(yytext); \
+	yylval.token.id = ret; \
+	yylval.token.line = lineno; \
+	return ret; \
+}while(0);
 %}
 
 ID  {letter}+
@@ -26,32 +28,32 @@ whitespace  [ \t]+
 
 %%
 
-"else"	{return ELSE;}
-"if"	{return IF;}
-"int"	{return INT;}
-"return"	{return RETURN;}
-"void"	{return VOID;}
-"while"	{return WHILE;}
+"else"	{RETURN_LEXEME(ELSE);}
+"if"	{RETURN_LEXEME(IF);}
+"int"	{RETURN_LEXEME(INT);}
+"return"	{RETURN_LEXEME(RETURN);}
+"void"	{RETURN_LEXEME(VOID);}
+"while"	{RETURN_LEXEME(WHILE);}
 
-"+"	{return PLUS;}
-"-"	{return MINUS;}
-"*"	{return TIMES;}
-"/"	{return OVER;}
-"<"	{return LESS_THAN;}
-"<="	{return LESS_EQUAL;}
-">"	{return GREATER_THAN;}
-">="	{return GREATER_EQUAL;}
-"=="	{return EQUAL;}
-"!="	{return NOT_EQUAL;}
-"="	{return ASSIGN;}
-";"	{return SEMI;}
-","	{return COMMA;}
-"("	{return LEFT_PARENTHESIS;}
-")"	{return RIGHT_PARENTHESIS;}
-"["	{return LEFT_BRACKET;}
-"]"	{return RIGHT_BRACKET;}
-"{"	{return LEFT_BRACE;}
-"}"	{return RIGHT_BRACE;}
+"+"	{RETURN_LEXEME(PLUS);}
+"-"	{RETURN_LEXEME(MINUS);}
+"*"	{RETURN_LEXEME(TIMES);}
+"/"	{RETURN_LEXEME(OVER);}
+"<"	{RETURN_LEXEME(LESS_THAN);}
+"<="	{RETURN_LEXEME(LESS_EQUAL);}
+">"	{RETURN_LEXEME(GREATER_THAN);}
+">="	{RETURN_LEXEME(GREATER_EQUAL);}
+"=="	{RETURN_LEXEME(EQUAL);}
+"!="	{RETURN_LEXEME(NOT_EQUAL);}
+"="	{RETURN_LEXEME(ASSIGN);}
+";"	{RETURN_LEXEME(SEMI);}
+","	{RETURN_LEXEME(COMMA);}
+"("	{RETURN_LEXEME(LEFT_PARENTHESIS);}
+")"	{RETURN_LEXEME(RIGHT_PARENTHESIS);}
+"["	{RETURN_LEXEME(LEFT_BRACKET);}
+"]"	{RETURN_LEXEME(RIGHT_BRACKET);}
+"{"	{RETURN_LEXEME(LEFT_BRACE);}
+"}"	{RETURN_LEXEME(RIGHT_BRACE);}
 
 {NUM}        {RETURN_LEXEME(NUM);}
 {ID}    {RETURN_LEXEME(ID);}
@@ -76,7 +78,7 @@ whitespace  [ \t]+
 					}
 					switch(c){
 						case EOF:
-							return ERROR;
+							RETURN_LEXEME(ERROR);
 						case '\n':
 							lineno++;
 							break;
@@ -91,10 +93,10 @@ whitespace  [ \t]+
 					}
                   } while (true);
 				  if(real_warn)
-					  return WARN;
+					  RETURN_LEXEME(WARN);
                 }
 
-.               {return ERROR;}
+.               {RETURN_LEXEME(ERROR);}
 
 %%
 
