@@ -11,7 +11,7 @@
 #define INSERT(PARENT_T, PARENT, CHILD_T, CHILD) do{ \
 	list_push_back( \
 			( (PARENT_T *)(PARENT.link) )->list, \
-			&( ( (CHILD_T *)(&(CHILD)) )->elem) ); \
+			&( ( (CHILD_T *)(&(CHILD.link)) )->elem) ); \
 }while(0);
 #define TYPE(target, name) ((_common_inherit *)(target.link))->type = name;
 %}
@@ -116,7 +116,7 @@ compound_stmt : LEFT_BRACE local_declarations statement_list RIGHT_BRACE
 local_declarations : local_declarations var_declaration
                        {
 						   $$ = $1;
-						   // INSERT(struct local_declarations, $$, struct var_declaration, $2);
+						   INSERT(struct local_declarations, $$, struct var_declaration, $2);
 					   }
                    | /* empty */
 			           {
@@ -126,7 +126,7 @@ local_declarations : local_declarations var_declaration
 statement_list : statement_list _statement
                    {
 					   $$ = $1;
-					   // INSERT(struct statement_list, $$, struct statement, $2);
+					   INSERT(struct statement_list, $$, struct _statement, $2);
 				   }
                | /* empty */
 			       {
@@ -134,57 +134,68 @@ statement_list : statement_list _statement
 				   }
 			   ;
 _statement : expression_stmt
-          | compound_stmt
-		  | selection_stmt
-		  | iteration_stmt
-		  | return_stmt
-		  ;
+           | compound_stmt
+		   | selection_stmt
+		   | iteration_stmt
+		   | return_stmt
+		   ;
 expression_stmt : expression SEMI
                     {
+						$$.link = new_expression_stmt($1.link);
 					}
                 | SEMI
 				    {
+						$$.link = new_expression_stmt(NULL);
 					}
 				;
 selection_stmt : IF LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement
 			       {
+					   $$.link = new_selection_stmt($3.link, $5.link, NULL);
 				   }
                | IF LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement ELSE _statement
 			       {
+					   $$.link = new_selection_stmt($3.link, $5.link, $7.link);
 				   }
 			   ;
 iteration_stmt : WHILE LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement
                    {
+					   $$.link = new_iteration_stmt($3.link, $5.link);
 				   }
                ;
 return_stmt : RETURN SEMI
                 {
+					$$.link = new_return_stmt(NULL);
 				}
             | RETURN expression SEMI
 			    {
+					$$.link = new_return_stmt($2.link);
 				}
 			;
 expression : var ASSIGN expression
                {
+				   $$.link = new_expression_assign($1.link, $3.link);
 			   }
            | simple_expression
 		       {
+				   $$.link = new_expression_simple($1.link);
 			   }
 		   ;
 var : ID
         {
-						printf("%d %s\n", $1.id, $1.lexeme);
+			$$.link = new_var($1.lexeme, NULL);
 		}
     | ID LEFT_BRACKET expression RIGHT_BRACKET
 	    {
-						printf("%d %s\n", $1.id, $1.lexeme);
+			$$.link = new_var($1.lexeme, $3.link);
 		}
 	;
 simple_expression : additive_expression _relop additive_expression
                       {
+						  $$.link = new_simple_expression($1.link, $2.lexeme, $3.link);
 					  }
                   | additive_expression
 				      {
+						  $$.link = new_simple_expression($1.link, NULL, NULL);
 					  }
 				  ;
 _relop : LESS_EQUAL
@@ -196,9 +207,11 @@ _relop : LESS_EQUAL
 	   ;
 additive_expression : additive_expression _addop term
                         {
+							$$.link = new_additive_expression($1.link, $2.lexeme, $3.link);
 						}
                     | term
                         {
+							$$.link = new_additive_expression(NULL, NULL, $1.link);
 						}
 					;
 _addop : PLUS
@@ -206,9 +219,11 @@ _addop : PLUS
 	   ;
 term : term _mulop factor
          {
+			 $$.link = new_term($1.link, $2.lexeme, $3.link);
 		 }
      | factor
 	     {
+			 $$.link = new_term(NULL, NULL, $1.link);
 		 }
 	 ;
 _mulop : TIMES
@@ -216,15 +231,20 @@ _mulop : TIMES
 	   ;
 factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
            {
+			   printf("[%d]\n", $2.id);
+			   $$.link = new_factor($2);
 		   }
        | var
            {
+			   $$.link = new_factor($1);
 		   }
 	   | call
            {
+			   $$.link = new_factor($1);
 		   }
 	   | NUM
            {
+			   $$.link = new_factor($1);
 		   }
 call : ID LEFT_PARENTHESIS args RIGHT_PARENTHESIS
          {
@@ -236,6 +256,7 @@ args : arg_list
 		 }
      | /* empty */
 	     {
+			 $$.link = NULL;
 		 }
 	 ;
 arg_list : arg_list COMMA expression

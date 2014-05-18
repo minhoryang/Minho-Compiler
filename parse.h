@@ -36,7 +36,8 @@ typedef enum {
 	factor,
 	call,
 	args,
-	arg_list
+	arg_list,
+	num  // for factor.
 } class;  // XXX funny naming. DO NOT DO THIS AT WORK :)
 
 // XXX Structures
@@ -87,10 +88,75 @@ struct statement_list{
 	_common_inherit;
 	List *list;
 };
-struct _statement{
+typedef struct _statement{
 	_common_inherit;
 	Elem elem;
+}_statement_inherit;
+struct expression_stmt{
+	_statement_inherit;
+	struct expression *expression;
 };
+struct selection_stmt{
+	_statement_inherit;
+	struct expression *condition;
+	struct _statement *action;
+	struct _statement *else_action;  // optional
+};
+struct iteration_stmt{
+	_statement_inherit;
+	struct expression *condition;
+	struct _statement *action;
+};
+struct return_stmt{
+	_statement_inherit;
+	struct expression *return_expression;  // optional
+};
+struct expression{
+	_common_inherit;
+	bool isAssign;
+	// true
+	struct var *var;
+	struct expression *expression;
+	// false
+	struct simple_expression *simple_expression;
+};
+struct var{
+	_common_inherit;
+	char *id;
+	struct expression *array;  // optional
+};
+struct simple_expression{
+	_common_inherit;
+	struct additive_expression *left;
+	// optional below
+	char *relop;  // check this
+		struct additive_expression *right;
+};
+struct additive_expression{
+	_common_inherit;
+		struct additive_expression *additive_expression;
+	char *addop;  // check this
+	// optional above
+	struct term *term;
+};
+struct term{
+	_common_inherit;
+		struct term *term;
+	char *mulop;  // check this
+	// optional above
+	struct factor *factor;
+};
+struct factor{
+	_common_inherit;
+	union {
+		struct expression *expression;
+		struct var *var;
+		struct call *call;
+		char *num;
+	} link; 
+	class linktype;  // check this
+};
+
 
 // XXX Func Defs
 Program * parse(void);
@@ -104,3 +170,31 @@ struct param *new_param(char *type_specifier, char *id, bool isArray);
 struct compound_stmt *new_compound_stmt(struct local_declarations *ld, struct statement_list *st);
 struct local_declarations *new_local_declarations();
 struct statement_list *new_statement_list();
+struct expression_stmt *new_expression_stmt(struct expression *expression);
+struct selection_stmt *new_selection_stmt(
+		struct expression *condition,
+		struct _statement *action,
+		struct _statement *else_action);
+struct iteration_stmt *new_iteration_stmt(
+		struct expression *condition,
+		struct _statement *action);
+struct return_stmt *new_return_stmt(struct expression *return_expression);
+struct expression *new_expression_assign(
+		struct var *var,
+		struct expression *expression_);
+struct expression *new_expression_simple(
+		struct simple_expression *simple_expression);
+struct var *new_var(char *id, struct expression *array);
+struct simple_expression *new_simple_expression(
+		struct additive_expression *left,
+		char *relop,
+		struct additive_expression *right);
+struct additive_expression *new_additive_expression(
+		struct additive_expression *additive_expression_,
+		char *addop,
+		struct term *term);
+struct term *new_term(
+		struct term *term_,
+		char *mulop,
+		struct factor *factor_);
+struct factor *new_factor(struct token token);
