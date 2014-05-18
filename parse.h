@@ -9,18 +9,18 @@ extern FILE *yyout;
 // XXX class naming.
 typedef enum {
 	/*program,*/
-	_declaration_list,
+	declaration_list,
 	/*_declaration,*/
 	var_declaration,
 	/*_type_specifier,*/
 	fun_declaration,
 	_params,
-	_param_list,
-	_param,
+	param_list,
+	param,
 	compound_stmt,
 	local_declarations,
 	statement_list,
-	statement,
+	_statement,
 	expression_stmt,
 	selection_stmt,
 	iteration_stmt,
@@ -45,30 +45,62 @@ typedef struct _common{
 	class type;
 }_common_inherit;
 
-typedef struct _declaration_list{  // XXX done
+typedef struct declaration_list{  // XXX done
 	_common_inherit;
 	List *list;
 }Program;
-
 typedef struct _declaration{  // XXX done
 	_common_inherit;
 	Elem elem;
-}_declaration_inherit;
-
-struct _var_declaration{
-	_declaration_inherit;
 	char *type_specifier;
 	char *id;
+}_declaration_inherit;
+struct var_declaration{
+	_declaration_inherit;
 	char *size;
 };
-
-struct _fun_declaration{
+struct fun_declaration{
 	_declaration_inherit;
+	struct param_list* params;
+};
+
+struct param_list{
+	_common_inherit;
+	List *list;
+};
+typedef _declaration_inherit _param_inherit;
+struct param{
+	_param_inherit;
+	bool isArray;
+};
+
+struct compound_stmt{
+	_common_inherit;
+	struct local_declarations *local_declarations;
+	struct statement_list *statement_list;
+};
+struct local_declarations{
+	_common_inherit;
+	List *list;
+};
+struct statement_list{
+	_common_inherit;
+	List *list;
+};
+struct _statement{
+	_common_inherit;
+	Elem elem;
 };
 
 // XXX Func Defs
 Program * parse(void);
 void printTree(Program *);
 
-Program *new__declaration_list();
-struct _var_declaration *new__var_declaration(char *type, char *id, char* size);
+Program *new_declaration_list();
+struct var_declaration *new_var_declaration(char *type, char *id, char *size);
+struct fun_declaration *new_fun_declaration(char *type, char *id, struct param_list *params);
+struct param_list *new_param_list();
+struct param *new_param(char *type_specifier, char *id, bool isArray);
+struct compound_stmt *new_compound_stmt(struct local_declarations *ld, struct statement_list *st);
+struct local_declarations *new_local_declarations();
+struct statement_list *new_statement_list();

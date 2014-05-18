@@ -37,7 +37,7 @@
 		int id;  // XXX just for return();
 	};  // XXX (anonymous struct) merge with above.
 }
-%type <token> program declaration_list _declaration var_declaration _type_specifier fun_declaration _params _param_list _param compound_stmt local_declarations statement_list statement expression_stmt selection_stmt iteration_stmt return_stmt expression var simple_expression _relop additive_expression _addop term _mulop factor call args arg_list
+%type <token> program declaration_list _declaration var_declaration _type_specifier fun_declaration _params param_list param compound_stmt local_declarations statement_list _statement expression_stmt selection_stmt iteration_stmt return_stmt expression var simple_expression _relop additive_expression _addop term _mulop factor call args arg_list
 
 /* YACC Rule & Action */
 %%
@@ -50,14 +50,12 @@ program : declaration_list
 declaration_list : declaration_list _declaration
 				     {
 						 $$ = $1;  // XXX merge.
-						 INSERT(struct _declaration_list, $$, _declaration_inherit, $2);
+						 INSERT(struct declaration_list, $$, _declaration_inherit, $2);
 					 }
                  | _declaration
                      {
-						 $$.link = new__declaration_list();
-						 INSERT(struct _declaration_list, $$, _declaration_inherit, $1);
-						 TYPE($$, _declaration_list);
-						 //printf("<<<%X>>>\n", $1.link);
+						 $$.link = new_declaration_list();
+						 INSERT(struct declaration_list, $$, _declaration_inherit, $1);
 					 }
 				 ;
 _declaration : var_declaration
@@ -65,15 +63,11 @@ _declaration : var_declaration
 	         ;
 var_declaration : _type_specifier ID SEMI
                     {
-						//printf("type %s id %s\n", $1.lexeme, $2.lexeme);
-						$$.link = new__var_declaration($1.lexeme, $2.lexeme, NULL);
-						TYPE($$, var_declaration);
+						$$.link = new_var_declaration($1.lexeme, $2.lexeme, NULL);
 				    }
                 | _type_specifier ID LEFT_BRACKET NUM RIGHT_BRACKET SEMI
                     {
-						//printf("type %s id %s[%s]\n", $1.lexeme, $2.lexeme, $4.lexeme);
-						$$.link = new__var_declaration($1.lexeme, $2.lexeme, $4.lexeme);
-						TYPE($$, var_declaration);
+						$$.link = new_var_declaration($1.lexeme, $2.lexeme, $4.lexeme);
 				    }
 				;
 _type_specifier : INT
@@ -81,69 +75,69 @@ _type_specifier : INT
 			    ;
 fun_declaration : _type_specifier ID LEFT_PARENTHESIS _params RIGHT_PARENTHESIS compound_stmt
                     {
-						printf("type %s ", $1.lexeme);
-						printf("%d %s\n", $2.id, $2.lexeme);
-						$$.link = 0x9999;
+						// TODO
+						$$.link = new_fun_declaration($1.lexeme, $2.lexeme, $4.link);
 					}
                 ;
-_params : _param_list
+_params : param_list
            {
+			   $$ = $1;
 		   }
         | VOID
 	       {
+			   $$.link = NULL;
 		   }
 	    ;
-_param_list : _param_list COMMA _param
+param_list : param_list COMMA param
                {
+				   $$ = $1;
+				   INSERT(struct param_list, $$, struct param, $3);
 			   }
-            | _param
+           | param
 		       {
+				   $$.link = new_param_list();
+				   INSERT(struct param_list, $$, struct param, $1);
 			   }
-		    ;
-_param : _type_specifier ID
+		   ;
+param : _type_specifier ID
 	      {
-						printf("type %s ", $1.lexeme);
-						printf("%d %s\n", $2.id, $2.lexeme);
+			  $$.link = new_param($1.lexeme, $2.lexeme, false);
 		  }
        | _type_specifier ID LEFT_BRACKET RIGHT_BRACKET
 	      {
-						printf("type %s ", $1.lexeme);
-						printf("%d %s\n", $2.id, $2.lexeme);
+			  $$.link = new_param($1.lexeme, $2.lexeme, true);
 		  }
 	   ;
 compound_stmt : LEFT_BRACE local_declarations statement_list RIGHT_BRACE
                   {
+					  $$.link = new_compound_stmt($2.link, $3.link);
 				  }
               ;
 local_declarations : local_declarations var_declaration
                        {
+						   $$ = $1;
+						   // INSERT(struct local_declarations, $$, struct var_declaration, $2);
 					   }
                    | /* empty */
 			           {
+						   $$.link = new_local_declarations();
 				       }
 				   ;
-statement_list : statement_list statement
+statement_list : statement_list _statement
                    {
+					   $$ = $1;
+					   // INSERT(struct statement_list, $$, struct statement, $2);
 				   }
                | /* empty */
 			       {
+					   $$.link = new_statement_list();
 				   }
 			   ;
-statement : expression_stmt
-              {
-			  }
+_statement : expression_stmt
           | compound_stmt
-              {
-			  }
 		  | selection_stmt
-              {
-			  }
 		  | iteration_stmt
-              {
-			  }
 		  | return_stmt
-              {
-			  }
 		  ;
 expression_stmt : expression SEMI
                     {
@@ -152,14 +146,14 @@ expression_stmt : expression SEMI
 				    {
 					}
 				;
-selection_stmt : IF LEFT_PARENTHESIS expression RIGHT_PARENTHESIS statement
+selection_stmt : IF LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement
 			       {
 				   }
-               | IF LEFT_PARENTHESIS expression RIGHT_PARENTHESIS statement ELSE statement
+               | IF LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement ELSE _statement
 			       {
 				   }
 			   ;
-iteration_stmt : WHILE LEFT_PARENTHESIS expression RIGHT_PARENTHESIS statement
+iteration_stmt : WHILE LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement
                    {
 				   }
                ;
