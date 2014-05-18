@@ -4,7 +4,7 @@
 
 Program * parse(void){
 	Program *ptr;
-	yyparse((void *)ptr);
+	yyparse(ptr);
 	return ptr;
 }
 
@@ -23,7 +23,7 @@ Program *new_declaration_list(){
 struct var_declaration *new_var_declaration(char *type, char *id, char *size){
 	ALLOC(one, struct var_declaration);
 	one->type_specifier = type;
-	one->id = id;
+	one->name = id;
 	one->size = size;
 	one->type = var_declaration;
 	return one;
@@ -33,7 +33,7 @@ struct fun_declaration *new_fun_declaration(char *type, char *id, struct param_l
 	// TODO
 	ALLOC(one, struct fun_declaration);
 	one->type_specifier = type;
-	one->id = id;
+	one->name = id;
 	one->params = params;
 	one->type = fun_declaration;
 	return one;
@@ -50,7 +50,7 @@ struct param_list *new_param_list(){
 struct param *new_param(char *type_specifier, char *id, bool isArray){
 	ALLOC(one, struct param);
 	one->type_specifier = type_specifier;
-	one->id = id;
+	one->name = id;
 	one->isArray = isArray;
 	one->type = param;
 	return one;
@@ -139,7 +139,7 @@ struct expression *new_expression_simple(
 struct var *new_var(char *id, struct expression *array){
 	ALLOC(one, struct var);
 	one->type = var;
-	one->id = id;
+	one->name = id;
 	one->array = array;
 	return one;
 }
@@ -212,3 +212,18 @@ struct factor *new_factor(struct token token){
 	return one;
 }
 
+struct call *new_call(char *id, struct arg_list *args){
+	ALLOC(one, struct call);
+	one->type = call;
+	one->name = id;
+	one->args = args;
+	return one;
+}
+
+struct arg_list *new_arg_list(){
+	ALLOC(one, struct arg_list);
+	one->type = arg_list;
+	one->list = _ALLOC(List);
+	list_init(one->list);
+	return one;
+}

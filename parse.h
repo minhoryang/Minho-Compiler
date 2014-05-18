@@ -54,7 +54,7 @@ typedef struct _declaration{  // XXX done
 	_common_inherit;
 	Elem elem;
 	char *type_specifier;
-	char *id;
+	char *name;
 }_declaration_inherit;
 struct var_declaration{
 	_declaration_inherit;
@@ -119,10 +119,12 @@ struct expression{
 	struct expression *expression;
 	// false
 	struct simple_expression *simple_expression;
+	// arg_list
+	Elem elem;
 };
 struct var{
 	_common_inherit;
-	char *id;
+	char *name;
 	struct expression *array;  // optional
 };
 struct simple_expression{
@@ -153,8 +155,18 @@ struct factor{
 		struct var *var;
 		struct call *call;
 		char *num;
-	} link; 
+	} link;  // TODO 
 	class linktype;  // check this
+};
+
+struct call{
+	_common_inherit;
+	char *name;
+	struct arg_list *args;  // nullable
+};
+struct arg_list{
+	_common_inherit;
+	List *list;
 };
 
 
@@ -198,3 +210,5 @@ struct term *new_term(
 		char *mulop,
 		struct factor *factor_);
 struct factor *new_factor(struct token token);
+struct call *new_call(char *id, struct arg_list *args);
+struct arg_list *new_arg_list();

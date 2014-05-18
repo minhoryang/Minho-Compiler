@@ -5,15 +5,11 @@
 #include <stdbool.h>
 #include "parse.h"
 #define YYERROR_VERBOSE true
-#define LINK(target) (_common *)(target.link)
-#define COPY(target, destination) do{ \
-}while(0);
 #define INSERT(PARENT_T, PARENT, CHILD_T, CHILD) do{ \
 	list_push_back( \
 			( (PARENT_T *)(PARENT.link) )->list, \
 			&( ( (CHILD_T *)(&(CHILD.link)) )->elem) ); \
 }while(0);
-#define TYPE(target, name) ((_common_inherit *)(target.link))->type = name;
 %}
 
 %token <token> ENDFILE ERROR WARN
@@ -37,14 +33,13 @@
 		int id;  // XXX just for return();
 	};  // XXX (anonymous struct) merge with above.
 }
-%type <token> program declaration_list _declaration var_declaration _type_specifier fun_declaration _params param_list param compound_stmt local_declarations statement_list _statement expression_stmt selection_stmt iteration_stmt return_stmt expression var simple_expression _relop additive_expression _addop term _mulop factor call args arg_list
+%type <token> program declaration_list _declaration var_declaration _type_specifier fun_declaration _params param_list param compound_stmt local_declarations statement_list _statement expression_stmt selection_stmt iteration_stmt return_stmt expression var simple_expression _relop additive_expression _addop term _mulop factor call _args arg_list
 
 /* YACC Rule & Action */
 %%
 program : declaration_list
             {
 				ptr = $1.link;
-				//printf("Program: <%X>\n", ptr);
 			}
         ;
 declaration_list : declaration_list _declaration
@@ -246,24 +241,26 @@ factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
            {
 			   $$.link = new_factor($1);
 		   }
-call : ID LEFT_PARENTHESIS args RIGHT_PARENTHESIS
+call : ID LEFT_PARENTHESIS _args RIGHT_PARENTHESIS
          {
-						printf("%d %s\n", $1.id, $1.lexeme);
+			 $$.link = new_call($1.lexeme, $3.link);
 		 }
      ;
-args : arg_list
-         {
-		 }
-     | /* empty */
+_args : arg_list
+      | /* empty */
 	     {
 			 $$.link = NULL;
 		 }
-	 ;
+	  ;
 arg_list : arg_list COMMA expression
              {
+				 $$ = $1;
+				 INSERT(struct arg_list, $$, struct expression, $3);
 			 }
          | expression
 		     {
+				 $$.link = new_arg_list();
+				 INSERT(struct arg_list, $$, struct expression, $1);
 			 }
 		 ;
 %%
