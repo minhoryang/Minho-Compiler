@@ -21,7 +21,7 @@
 %token <token> LEFT_PARENTHESIS RIGHT_PARENTHESIS
 %token <token> LEFT_BRACKET RIGHT_BRACKET
 %token <token> LEFT_BRACE RIGHT_BRACE
-%parse-param {Program *ptr}
+%parse-param {Program **ptr}
 %union {
 	struct token{
 		int id;
@@ -39,7 +39,7 @@
 %%
 program : declaration_list
             {
-				ptr = $1.link;
+				*ptr = $1.link;
 			}
         ;
 declaration_list : declaration_list _declaration
@@ -264,7 +264,7 @@ arg_list : arg_list COMMA expression
 			 }
 		 ;
 %%
-int yyerror(Program *ptr, char *str){
+int yyerror(Program **ptr, char *str){
 	printf("%s\n", str);
 	return 0;
 }

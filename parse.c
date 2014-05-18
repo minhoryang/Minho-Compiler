@@ -3,8 +3,8 @@
 #define _ALLOC(type) (type *)calloc(1, sizeof(type));
 
 Program * parse(void){
-	Program *ptr;
-	yyparse(ptr);
+	Program *ptr = NULL;
+	yyparse(&ptr);
 	return ptr;
 }
 
