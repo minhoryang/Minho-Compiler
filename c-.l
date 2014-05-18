@@ -15,6 +15,7 @@
 	yylval.token.lexeme = strdup(yytext); \
 	yylval.token.id = ret; \
 	yylval.token.line = lineno; \
+	yylval.token.link = NULL; \
 	return ret; \
 }while(0);
 %}

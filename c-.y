@@ -3,7 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "parse.h"
 #define YYERROR_VERBOSE true
+#define LINK(target) (_common *)(target.link)
+#define COPY(target, destination) do{ \
+}while(0);
+#define INSERT(PARENT_T, PARENT, CHILD_T, CHILD) do{ \
+	list_push_back( \
+			( (PARENT_T *)(PARENT.link) )->list, \
+			&( ( (CHILD_T *)(&(CHILD)) )->elem) ); \
+}while(0);
+#define TYPE(target, name) ((_common_inherit *)(target.link))->type = name;
 %}
 
 %token <token> ENDFILE ERROR WARN
@@ -15,76 +25,92 @@
 %token <token> LEFT_PARENTHESIS RIGHT_PARENTHESIS
 %token <token> LEFT_BRACKET RIGHT_BRACKET
 %token <token> LEFT_BRACE RIGHT_BRACE
-
-%parse-param {void *ptr}
-
+%parse-param {Program *ptr}
 %union {
-	struct type{
+	struct token{
 		int id;
 		char *lexeme;
 		int line;
+		void *link;
 	}token;
 	struct{
-		int id;
-	};  // anonymous struct.  merge with above.
+		int id;  // XXX just for return();
+	};  // XXX (anonymous struct) merge with above.
 }
+%type <token> program declaration_list _declaration var_declaration _type_specifier fun_declaration _params _param_list _param compound_stmt local_declarations statement_list statement expression_stmt selection_stmt iteration_stmt return_stmt expression var simple_expression _relop additive_expression _addop term _mulop factor call args arg_list
 
 /* YACC Rule & Action */
 %%
 program : declaration_list
+            {
+				ptr = $1.link;
+				//printf("Program: <%X>\n", ptr);
+			}
         ;
-declaration_list : declaration_list declaration
+declaration_list : declaration_list _declaration
 				     {
+						 $$ = $1;  // XXX merge.
+						 INSERT(struct _declaration_list, $$, _declaration_inherit, $2);
 					 }
-                 | declaration
+                 | _declaration
                      {
-						 printf("h\n");
+						 $$.link = new__declaration_list();
+						 INSERT(struct _declaration_list, $$, _declaration_inherit, $1);
+						 TYPE($$, _declaration_list);
+						 //printf("<<<%X>>>\n", $1.link);
 					 }
 				 ;
-declaration : var_declaration
-            | fun_declaration
-			;
-var_declaration : type_specifier ID SEMI
+_declaration : var_declaration
+             | fun_declaration
+	         ;
+var_declaration : _type_specifier ID SEMI
                     {
-						printf("%d %s\n", $2.id, $2.lexeme);
+						//printf("type %s id %s\n", $1.lexeme, $2.lexeme);
+						$$.link = new__var_declaration($1.lexeme, $2.lexeme, NULL);
+						TYPE($$, var_declaration);
 				    }
-                | type_specifier ID LEFT_BRACKET NUM RIGHT_BRACKET SEMI
+                | _type_specifier ID LEFT_BRACKET NUM RIGHT_BRACKET SEMI
                     {
-						printf("%d %s\n", $2.id, $2.lexeme);
-						printf("%d %s\n", $4.id, $4.lexeme);
+						//printf("type %s id %s[%s]\n", $1.lexeme, $2.lexeme, $4.lexeme);
+						$$.link = new__var_declaration($1.lexeme, $2.lexeme, $4.lexeme);
+						TYPE($$, var_declaration);
 				    }
 				;
-type_specifier : INT
-               | VOID
-			   ;
-fun_declaration : type_specifier ID LEFT_PARENTHESIS params RIGHT_PARENTHESIS compound_stmt
+_type_specifier : INT
+                | VOID
+			    ;
+fun_declaration : _type_specifier ID LEFT_PARENTHESIS _params RIGHT_PARENTHESIS compound_stmt
                     {
+						printf("type %s ", $1.lexeme);
 						printf("%d %s\n", $2.id, $2.lexeme);
+						$$.link = 0x9999;
 					}
                 ;
-params : param_list
+_params : _param_list
            {
 		   }
-       | VOID
+        | VOID
 	       {
 		   }
-	   ;
-param_list : param_list COMMA param
+	    ;
+_param_list : _param_list COMMA _param
                {
 			   }
-           | param
+            | _param
 		       {
 			   }
-		   ;
-param : type_specifier ID
+		    ;
+_param : _type_specifier ID
 	      {
+						printf("type %s ", $1.lexeme);
 						printf("%d %s\n", $2.id, $2.lexeme);
 		  }
-      | type_specifier ID LEFT_BRACKET RIGHT_BRACKET
+       | _type_specifier ID LEFT_BRACKET RIGHT_BRACKET
 	      {
+						printf("type %s ", $1.lexeme);
 						printf("%d %s\n", $2.id, $2.lexeme);
 		  }
-	  ;
+	   ;
 compound_stmt : LEFT_BRACE local_declarations statement_list RIGHT_BRACE
                   {
 				  }
@@ -160,40 +186,40 @@ var : ID
 						printf("%d %s\n", $1.id, $1.lexeme);
 		}
 	;
-simple_expression : additive_expression relop additive_expression
+simple_expression : additive_expression _relop additive_expression
                       {
 					  }
                   | additive_expression
 				      {
 					  }
 				  ;
-relop : LESS_EQUAL
-      | LESS_THAN
-	  | GREATER_THAN
-	  | GREATER_EQUAL
-	  | EQUAL
-	  | NOT_EQUAL
-	  ;
-additive_expression : additive_expression addop term
+_relop : LESS_EQUAL
+       | LESS_THAN
+	   | GREATER_THAN
+ 	   | GREATER_EQUAL
+ 	   | EQUAL
+	   | NOT_EQUAL
+	   ;
+additive_expression : additive_expression _addop term
                         {
 						}
                     | term
                         {
 						}
 					;
-addop : PLUS
-      | MINUS
-	  ;
-term : term mulop factor
+_addop : PLUS
+       | MINUS
+	   ;
+term : term _mulop factor
          {
 		 }
      | factor
 	     {
 		 }
 	 ;
-mulop : TIMES
-      | OVER
-	  ;
+_mulop : TIMES
+       | OVER
+	   ;
 factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
            {
 		   }
@@ -226,7 +252,7 @@ arg_list : arg_list COMMA expression
 			 }
 		 ;
 %%
-int yyerror(void *ptr, char *str){
+int yyerror(Program *ptr, char *str){
 	printf("%s\n", str);
 	return 0;
 }
