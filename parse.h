@@ -46,9 +46,12 @@ typedef struct _common{
 	class type;
 }_common_inherit;
 
+#define LISTMAX 10
 typedef struct declaration_list{  // XXX done
 	_common_inherit;
 	List *list;
+	struct _declaration *list2;
+	int list2_l;
 }Program;
 typedef struct _declaration{  // XXX done
 	_common_inherit;
@@ -215,3 +218,9 @@ struct call *new_call(char *id, struct arg_list *args);
 struct arg_list *new_arg_list();
 
 #include "parse_dump.h"
+
+#define SPACING do{ \
+	int i; \
+	for(i = 0; i < level; i++) \
+		printf(" "); \
+}while(0);

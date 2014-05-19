@@ -3,10 +3,282 @@ void dump_declaration_list(struct declaration_list *dl, int level){
 	for(find_declaration = list_begin(dl->list);
 		find_declaration != list_end(dl->list);
 		find_declaration = list_next(find_declaration)){
-			struct fun_declaration *this = list_entry(find_declaration, struct fun_declaration, elem);
+			struct _declaration *this = list_entry(find_declaration, struct _declaration, elem);
 			LEVEL_UP;
 			printTree((struct _common *)this, level);
-			//printf("search %x\n", find_declaration);
 			LEVEL_DOWN;
+	}
+}
+
+void dump_var_declaration(struct var_declaration *vd, int level){
+	SPACING printf("[Variable Declared]\n");
+	LEVEL_UP;
+	SPACING printf("TYPE\t\"%s\"\n", vd->type_specifier);
+	SPACING printf("ID\t\"%s\"\n", vd->name);
+	if(vd->size){
+		SPACING printf("ARRAY\t[%s]\n", vd->size);
+	}
+	LEVEL_DOWN;
+}
+
+void dump_fun_declaration(struct fun_declaration *fd, int level){
+	SPACING printf("[Function Declared]\n");
+	LEVEL_UP;
+	SPACING printf("TYPE\t\"%s\"\n", fd->type_specifier);
+	SPACING printf("ID\t\"%s\"\n", fd->name);
+	if(fd->params){
+		printTree((struct _common *)fd->params, level);
+	}
+	if(fd->compound_stmt)
+		printTree((struct _common *)fd->compound_stmt, level);
+	LEVEL_DOWN;
+}
+
+void dump_param_list(struct param_list *pl, int level){
+	SPACING printf("[Param List]\n");
+	LEVEL_UP;
+	Elem *e;
+	for(e = list_begin(pl->list);
+		e != list_end(pl->list);
+		e = list_next(e)){
+		struct param *p = list_entry(e, struct param, elem);
+		printTree((struct _common *)p, level);
+	}
+	LEVEL_DOWN;
+}
+
+void dump_param(struct param *p, int level){
+	SPACING printf("[Param]\n");
+	LEVEL_UP;
+	SPACING printf("TYPE\t\"%s\"\n", p->type_specifier);
+	SPACING printf("ID\t\"%s\"\n", p->name);
+	if(p->isArray){
+		SPACING printf("isArray []\n");
+	}
+	LEVEL_DOWN;
+}
+
+void dump_compound_stmt(struct compound_stmt *cs, int level){
+	SPACING printf("[Compount Statement]\n");
+	LEVEL_UP;
+	if(cs->local_declarations)
+		printTree((struct _common *)cs->local_declarations, level);
+	if(cs->statement_list)
+		printTree((struct _common *)cs->statement_list, level);
+	LEVEL_DOWN;
+}
+
+void dump_local_declarations(struct local_declarations *ld, int level){
+	SPACING printf("[Local Declared]\n");
+	LEVEL_UP;
+	Elem *e;
+	for(e = list_begin(ld->list);
+		e != list_end(ld->list);
+		e = list_next(e)){
+		struct var_declaration *vd = list_entry(e, struct var_declaration, elem);
+	   printTree((struct _common *)vd, level);	
+	}
+	LEVEL_DOWN;
+}
+
+void dump_statement_list(struct statement_list *sl, int level){
+	SPACING printf("[Statement List]\n");
+	LEVEL_UP;
+	Elem *e;
+	for(e = list_begin(sl->list);
+		e != list_end(sl->list);
+		e = list_next(e)){
+		struct _statement *s = list_entry(e, struct _statement, elem);
+		printTree((struct _common *)s, level);
+	}
+	LEVEL_DOWN;
+}
+
+void dump_expression_stmt(struct expression_stmt *ex, int level){
+	SPACING printf("[Expression Statement]\n");
+	LEVEL_UP;
+	if(ex->expression)
+		printTree((struct _common *)ex->expression, level);
+	LEVEL_DOWN;
+}
+
+void dump_selection_stmt(struct selection_stmt *ss, int level){
+	SPACING printf("[Selection Statement]\n");
+	LEVEL_UP;
+	if(ss->condition){
+		SPACING printf("[IF]\n");
+		LEVEL_UP;
+		printTree((struct _common *)ss->condition, level);
+		LEVEL_DOWN;
+	}
+	if(ss->action){
+		SPACING printf("[Then]\n");
+		LEVEL_UP;
+		printTree((struct _common *)ss->action, level);
+		LEVEL_DOWN;
+	}
+	if(ss->else_action){
+		SPACING printf("[ELSE]\n");
+		LEVEL_UP;
+		printTree((struct _common *)ss->else_action, level);
+		LEVEL_DOWN;
+	}
+	LEVEL_DOWN;
+}
+
+void dump_iteration_stmt(struct iteration_stmt *is, int level){
+	SPACING printf("[Iteration Statement]\n");
+	LEVEL_UP;
+	if(is->condition){
+		SPACING printf("[WHILE]\n");
+		LEVEL_UP;
+		printTree((struct _common *)is->condition, level);
+		LEVEL_DOWN;
+	}
+	if(is->action){
+		SPACING printf("[Then]\n");
+		LEVEL_UP;
+		printTree((struct _common *)is->action, level);
+		LEVEL_DOWN;
+	}
+	LEVEL_DOWN;
+}
+
+void dump_return_stmt(struct return_stmt *rs, int level){
+	SPACING printf("[Return Statement]\n");
+	LEVEL_UP;
+	if(rs->return_expression){
+		printTree((struct _common *)rs->return_expression, level);
+	}
+	LEVEL_DOWN;
+}
+
+void dump_expression(struct expression *e, int level){
+	SPACING printf("[Expression]\n");
+	LEVEL_UP;
+	if(e->isAssign){
+		SPACING printf("[Assign]\n");
+		LEVEL_UP;
+		if(e->var){
+			printTree((struct _common *)e->var, level);
+		}
+		SPACING printf("=\n");
+		if(e->expression){
+			printTree((struct _common *)e->expression, level);
+		}
+		LEVEL_DOWN;
+	}else{
+		if(e->simple_expression)
+			printTree((struct _common *)e->simple_expression, level);
+	}
+	LEVEL_DOWN;
+}
+
+void dump_var(struct var *v, int level){
+	SPACING printf("[Var]\n");
+	LEVEL_UP;
+	if(v->name){
+		SPACING printf("NAME\t\"%s\"\n", v->name);
+	}
+	if(v->array){
+		SPACING printf("[Array]\n");
+		LEVEL_UP;
+		printTree((struct _common *)v->array, level);
+		LEVEL_DOWN;
+	}
+	LEVEL_DOWN;
+}
+
+void dump_simple_expression(struct simple_expression *se, int level){
+	SPACING printf("[Simple Expression]\n");
+	LEVEL_UP;
+	if(se->left){
+		SPACING printf("[Left]\n");
+		LEVEL_UP;
+		printTree((struct _common *)se->left, level);
+		LEVEL_DOWN;
+	}
+	if(se->relop){
+		SPACING printf("RELOP\t%s\n", se->relop);
+		if(se->right){
+			SPACING printf("[Right]\n");
+			LEVEL_UP;
+			printTree((struct _common *)se->right, level);
+			LEVEL_DOWN;
+		}
+	}
+	LEVEL_DOWN;
+}
+
+void dump_additive_expression(struct additive_expression *ae, int level){
+   SPACING printf("[Additive Expression]\n");
+   LEVEL_UP;
+   if(ae->addop){
+	   if(ae->additive_expression){
+		   printTree((struct _common *)ae->additive_expression, level);
+	   }
+	   SPACING printf("ADDOP\t%s\n", ae->addop);
+   }
+   if(ae->term){
+	   printTree((struct _common *)ae->term, level);
+   }
+   LEVEL_DOWN;
+}
+
+void dump_term(struct term *t, int level){
+	SPACING printf("[Term]\n");
+	LEVEL_UP;
+	if(t->mulop){
+		if(t->term){
+			printTree((struct _common *)t->term, level);
+		}
+		SPACING printf("MULOP\t%s\n", t->mulop);
+	}
+	if(t->factor){
+		printTree((struct _common *)t->factor, level);
+	}
+	LEVEL_DOWN;
+}
+
+void dump_factor(struct factor *f, int level){
+	SPACING printf("[Factor]\n");
+	LEVEL_UP;
+	switch(f->linktype){
+		case expression:
+		case var:
+		case call:
+			printTree((struct _common *)f->link, level);
+			break;
+		case num:
+			SPACING printf("%s\n", (char *)(f->link));
+			break;
+	}
+	LEVEL_DOWN;
+}
+
+void dump_call(struct call *c, int level){
+	SPACING printf("[Call]\n");
+	LEVEL_UP;
+	SPACING printf("\"%s\"\n", c->name);
+	if(c->args){
+		printTree((struct _common *)c->args, level);
+	}else{
+		SPACING printf("[No Arg List]\n");
+	}
+	LEVEL_DOWN;
+}
+
+void dump_arg_list(struct arg_list *al, int level){
+	{
+		SPACING printf("[Arg List]\n");
+		LEVEL_UP;
+		Elem *e;
+		for(e = list_begin(al->list);
+			e != list_end(al->list);
+			e = list_next(e)){
+			struct expression *my = list_entry(e, struct expression, elem);
+			printTree((struct _common *)my, level);
+		}
+		LEVEL_DOWN;
 	}
 }

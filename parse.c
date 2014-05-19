@@ -9,21 +9,69 @@ Program * parse(void){
 }
 
 void printTree(struct _common *data, int level){
-	{  // XXX Spacing.
-		int i;
-		for(i = 0;i < level;i++)
-			printf(" ");
-	}
 	switch(data->type){
 		case declaration_list:
-			printf("%s\n", data->lexeme);
 			dump_declaration_list((struct declaration_list *)data, level);
 			break;
 		case var_declaration:
+			dump_var_declaration((struct var_declaration *)data, level);
 			break;
 		case fun_declaration:
+			dump_fun_declaration((struct fun_declaration *)data, level);
+			break;
+		case param_list:
+			dump_param_list((struct param_list *)data, level);
+			break;
+		case param:
+			dump_param((struct param *)data, level);
+			break;
+		case compound_stmt:
+			dump_compound_stmt((struct compound_stmt *)data, level);
+			break;
+		case local_declarations:
+			dump_local_declarations((struct local_declarations *)data, level);
+			break;
+		case statement_list:
+			dump_statement_list((struct statement_list *)data, level);
+			break;
+		case expression_stmt:
+			dump_expression_stmt((struct expression_stmt *)data, level);
+			break;
+		case selection_stmt:
+			dump_selection_stmt((struct selection_stmt *)data, level);
+			break;
+		case iteration_stmt:
+			dump_iteration_stmt((struct iteration_stmt *)data, level);
+			break;
+		case return_stmt:
+			dump_return_stmt((struct return_stmt *)data, level);
+			break;
+		case expression:
+			dump_expression((struct expression *)data, level);
+			break;
+		case var:
+			dump_var((struct var *)data, level);
+			break;
+		case simple_expression:
+			dump_simple_expression((struct simple_expression *)data, level);
+			break;
+		case additive_expression:
+			dump_additive_expression((struct additive_expression *)data, level);
+			break;
+		case term:
+			dump_term((struct term *)data, level);
+			break;
+		case factor:
+			dump_factor((struct factor *)data, level);
+			break;
+		case call:
+			dump_call((struct call *)data, level);
+			break;
+		case arg_list:
+			dump_arg_list((struct arg_list *)data, level);
 			break;
 		default:
+			SPACING printf("<%d>\n", data->type);
 			break;
 	}
 }
@@ -33,6 +81,8 @@ Program *new_declaration_list(){
 	one->list = _ALLOC(List);
 	list_init(one->list);
 	one->type = declaration_list;
+	one->list2 = (struct _declaration *)calloc(LISTMAX, sizeof(struct _declaration));
+	one->list2_l = 0;
 	return one;
 }
 

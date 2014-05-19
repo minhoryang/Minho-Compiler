@@ -8,7 +8,12 @@
 #define INSERT(PARENT_T, PARENT, CHILD_T, CHILD) do{ \
 	list_push_back( \
 			( (PARENT_T *)(PARENT.link) )->list, \
-			&( ( (CHILD_T *)(&(CHILD.link)) )->elem) ); \
+			&( ( (CHILD_T *)(CHILD.link) )->elem ) ); \
+}while(0);
+#define INSERT2(PARENT_T, PARENT, CHILD_T, CHILD) do{ \
+	((PARENT_T *)(PARENT.link))->list2[ \
+		((PARENT_T *)(PARENT.link))->list2_l++ \
+	] = (CHILD_T *)CHILD.link; \
 }while(0);
 %}
 
@@ -45,12 +50,26 @@ program : declaration_list
 declaration_list : declaration_list _declaration
 				     {
 						 $$ = $1;  // XXX merge.
-						 INSERT(struct declaration_list, $$, _declaration_inherit, $2);
+						 {
+							 struct declaration_list *args = (struct declaration_list *)($$.link);
+							 List *list = args->list;
+							 {
+								 struct _declaration *exp = (struct _declaration *)($2.link);
+								 list_push_back(list, &(exp->elem));
+							 }
+						 }
 					 }
                  | _declaration
                      {
 						 $$.link = new_declaration_list();
-						 INSERT(struct declaration_list, $$, _declaration_inherit, $1);
+						 {
+							 struct declaration_list *args = (struct declaration_list *)($$.link);
+							 List *list = args->list;
+							 {
+								 struct _declaration *exp = (struct _declaration *)($1.link);
+								 list_push_back(list, &(exp->elem));
+							 }
+						 }
 					 }
 				 ;
 _declaration : var_declaration
@@ -85,12 +104,26 @@ _params : param_list
 param_list : param_list COMMA param
                {
 				   $$ = $1;
-				   INSERT(struct param_list, $$, struct param, $3);
+				   {
+					   struct param_list *args = (struct param_list *)($$.link);
+					   List *list = args->list;
+					   {
+						   struct param *exp = (struct param *)($3.link);
+						   list_push_back(list, &(exp->elem));
+					   }
+				   }
 			   }
            | param
 		       {
 				   $$.link = new_param_list();
-				   INSERT(struct param_list, $$, struct param, $1);
+				   {
+					   struct param_list *args = (struct param_list *)($$.link);
+					   List *list = args->list;
+					   {
+						   struct param *exp = (struct param *)($1.link);
+						   list_push_back(list, &(exp->elem));
+					   }
+				   }
 			   }
 		   ;
 param : _type_specifier ID
@@ -110,7 +143,14 @@ compound_stmt : LEFT_BRACE local_declarations statement_list RIGHT_BRACE
 local_declarations : local_declarations var_declaration
                        {
 						   $$ = $1;
-						   INSERT(struct local_declarations, $$, struct var_declaration, $2);
+						   {
+							   struct local_declarations *args = (struct local_declarations *)($$.link);
+							   List *list = args->list;
+							   {
+								   struct var_declaration *exp = (struct var_declaration *)($2.link);
+								   list_push_back(list, &(exp->elem));
+							   }
+						   }
 					   }
                    | /* empty */
 			           {
@@ -120,7 +160,14 @@ local_declarations : local_declarations var_declaration
 statement_list : statement_list _statement
                    {
 					   $$ = $1;
-					   INSERT(struct statement_list, $$, struct _statement, $2);
+					   {
+						   struct statement_list *args = (struct statement_list *)($$.link);
+						   List *list = args->list;
+						   {
+							   struct _statement *exp = (struct _statement *)($2.link);
+							   list_push_back(list, &(exp->elem));
+						   }
+					   }
 				   }
                | /* empty */
 			       {
@@ -253,12 +300,24 @@ _args : arg_list
 arg_list : arg_list COMMA expression
              {
 				 $$ = $1;
-				 INSERT(struct arg_list, $$, struct expression, $3);
+				 {
+					 struct arg_list *args = (struct arg_list *)($$.link);
+					 List *list = args->list;
+					 {
+						 struct expression *exp = (struct expression *)($3.link);
+						 list_push_back(list, &(exp->elem));
+					 }
+				 }
 			 }
          | expression
 		     {
 				 $$.link = new_arg_list();
-				 INSERT(struct arg_list, $$, struct expression, $1);
+				 struct arg_list *args = (struct arg_list *)($$.link);
+				 List *list = args->list;
+				 {
+					 struct expression *exp = (struct expression *)($1.link);
+					 list_push_back(list, &(exp->elem));
+				 }
 			 }
 		 ;
 %%
