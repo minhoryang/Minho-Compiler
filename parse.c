@@ -9,6 +9,7 @@ Program * parse(void){
 }
 
 void printTree(struct _common *data, int level){
+	if(data)
 	switch(data->type){
 		case declaration_list:
 			dump_declaration_list((struct declaration_list *)data, level);
