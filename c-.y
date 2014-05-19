@@ -5,16 +5,6 @@
 #include <stdbool.h>
 #include "parse.h"
 #define YYERROR_VERBOSE true
-#define INSERT(PARENT_T, PARENT, CHILD_T, CHILD) do{ \
-	list_push_back( \
-			( (PARENT_T *)(PARENT.link) )->list, \
-			&( ( (CHILD_T *)(CHILD.link) )->elem ) ); \
-}while(0);
-#define INSERT2(PARENT_T, PARENT, CHILD_T, CHILD) do{ \
-	((PARENT_T *)(PARENT.link))->list2[ \
-		((PARENT_T *)(PARENT.link))->list2_l++ \
-	] = (CHILD_T *)CHILD.link; \
-}while(0);
 %}
 
 %token <token> ENDFILE ERROR WARN

@@ -81,8 +81,6 @@ Program *new_declaration_list(){
 	one->list = _ALLOC(List);
 	list_init(one->list);
 	one->type = declaration_list;
-	one->list2 = (struct _declaration *)calloc(LISTMAX, sizeof(struct _declaration));
-	one->list2_l = 0;
 	return one;
 }
 

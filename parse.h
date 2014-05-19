@@ -46,12 +46,9 @@ typedef struct _common{
 	class type;
 }_common_inherit;
 
-#define LISTMAX 10
 typedef struct declaration_list{  // XXX done
 	_common_inherit;
 	List *list;
-	struct _declaration *list2;
-	int list2_l;
 }Program;
 typedef struct _declaration{  // XXX done
 	_common_inherit;
