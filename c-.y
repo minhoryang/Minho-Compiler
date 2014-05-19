@@ -16,6 +16,8 @@
 %token <token> LEFT_PARENTHESIS RIGHT_PARENTHESIS
 %token <token> LEFT_BRACKET RIGHT_BRACKET
 %token <token> LEFT_BRACE RIGHT_BRACE
+%nonassoc _ELSE_PRIORITY
+%nonassoc ELSE
 %parse-param {Program **ptr}
 %union {
 	struct token{
@@ -179,7 +181,7 @@ expression_stmt : expression SEMI
 						$$.link = new_expression_stmt(NULL);
 					}
 				;
-selection_stmt : IF LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement
+selection_stmt : IF LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement		%prec _ELSE_PRIORITY
 			       {
 					   $$.link = new_selection_stmt($3.link, $5.link, NULL);
 				   }
