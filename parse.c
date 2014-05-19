@@ -8,8 +8,24 @@ Program * parse(void){
 	return ptr;
 }
 
-void printTree(Program *data){
-	;
+void printTree(struct _common *data, int level){
+	{  // XXX Spacing.
+		int i;
+		for(i = 0;i < level;i++)
+			printf(" ");
+	}
+	switch(data->type){
+		case declaration_list:
+			printf("%s\n", data->lexeme);
+			dump_declaration_list((struct declaration_list *)data, level);
+			break;
+		case var_declaration:
+			break;
+		case fun_declaration:
+			break;
+		default:
+			break;
+	}
 }
 
 Program *new_declaration_list(){
@@ -29,12 +45,16 @@ struct var_declaration *new_var_declaration(char *type, char *id, char *size){
 	return one;
 }
 
-struct fun_declaration *new_fun_declaration(char *type, char *id, struct param_list *params){
-	// TODO
+struct fun_declaration *new_fun_declaration(
+		char *type,
+		char *id,
+		struct param_list *params,
+		struct compound_stmt *compound_stmt){
 	ALLOC(one, struct fun_declaration);
 	one->type_specifier = type;
 	one->name = id;
 	one->params = params;
+	one->compound_stmt = compound_stmt;
 	one->type = fun_declaration;
 	return one;
 }
@@ -180,33 +200,19 @@ struct term *new_term(
 	return one;
 }
 
-struct factor *new_factor(struct token token){
+struct factor *new_factor(void *ptr, class type){
 	ALLOC(one, struct factor);
 	one->type = factor;
-	switch(token.id){
-		case LEFT_PARENTHESIS:
-			{
-				printf("WARN! @ %d\n", __LINE__);
-			}
-		case ID:
-			{
-				break;  // TODO until call().
-				struct _common *target = (struct _common *)(token.link);
-				switch(target->type){
-					case expression:
-					case var:
-					case call:
-						one->linktype = target->type;
-						one->link = target;
-						break;
-				}
-			}
+	switch(type){
+		case expression:
+		case var:
+		case call:
+			one->linktype = type;
+			one->link = ptr;
 			break;
-		case NUM:
-			{
-				one->linktype = num;
-				one->link = token.lexeme;
-			}
+		case num:
+			one->linktype = num;
+			one->link = (char *)ptr;
 			break;
 	}
 	return one;
@@ -227,3 +233,5 @@ struct arg_list *new_arg_list(){
 	list_init(one->list);
 	return one;
 }
+
+#include "parse_dump.c"

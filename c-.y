@@ -70,8 +70,7 @@ _type_specifier : INT
 			    ;
 fun_declaration : _type_specifier ID LEFT_PARENTHESIS _params RIGHT_PARENTHESIS compound_stmt
                     {
-						// TODO
-						$$.link = new_fun_declaration($1.lexeme, $2.lexeme, $4.link);
+						$$.link = new_fun_declaration($1.lexeme, $2.lexeme, $4.link, $6.link);
 					}
                 ;
 _params : param_list
@@ -226,20 +225,19 @@ _mulop : TIMES
 	   ;
 factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
            {
-			   printf("[%d]\n", $2.id);
-			   $$.link = new_factor($2);
+			   $$.link = new_factor($2.link, expression);
 		   }
        | var
            {
-			   $$.link = new_factor($1);
+			   $$.link = new_factor($1.link, var);
 		   }
 	   | call
            {
-			   $$.link = new_factor($1);
+			   $$.link = new_factor($1.link, call);
 		   }
 	   | NUM
            {
-			   $$.link = new_factor($1);
+			   $$.link = new_factor($1.lexeme, num);
 		   }
 call : ID LEFT_PARENTHESIS _args RIGHT_PARENTHESIS
          {

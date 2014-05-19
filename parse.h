@@ -9,18 +9,18 @@ extern FILE *yyout;
 // XXX class naming.
 typedef enum {
 	/*program,*/
-	declaration_list,
+	declaration_list = 1,
 	/*_declaration,*/
 	var_declaration,
 	/*_type_specifier,*/
 	fun_declaration,
-	_params,
+	/*_params,*/
 	param_list,
 	param,
 	compound_stmt,
 	local_declarations,
 	statement_list,
-	_statement,
+	/*_statement,*/
 	expression_stmt,
 	selection_stmt,
 	iteration_stmt,
@@ -28,11 +28,11 @@ typedef enum {
 	expression,
 	var,
 	simple_expression,
-	_relop,
+	/*_relop,*/
 	additive_expression,
-	_addop,
+	/*_addop,*/
 	term,
-	_mulop,
+	/*_mulop,*/
 	factor,
 	call,
 	args,
@@ -63,6 +63,7 @@ struct var_declaration{
 struct fun_declaration{
 	_declaration_inherit;
 	struct param_list* params;
+	struct compound_stmt *compound_stmt;
 };
 
 struct param_list{
@@ -155,7 +156,7 @@ struct factor{
 		struct var *var;
 		struct call *call;
 		char *num;
-	} link;  // TODO 
+	} link; 
 	class linktype;  // check this
 };
 
@@ -172,11 +173,11 @@ struct arg_list{
 
 // XXX Func Defs
 Program * parse(void);
-void printTree(Program *);
+void printTree(struct _common *, int);
 
 Program *new_declaration_list();
 struct var_declaration *new_var_declaration(char *type, char *id, char *size);
-struct fun_declaration *new_fun_declaration(char *type, char *id, struct param_list *params);
+struct fun_declaration *new_fun_declaration(char *type, char *id, struct param_list *params, struct compound_stmt *compound_stmt);
 struct param_list *new_param_list();
 struct param *new_param(char *type_specifier, char *id, bool isArray);
 struct compound_stmt *new_compound_stmt(struct local_declarations *ld, struct statement_list *st);
@@ -209,6 +210,8 @@ struct term *new_term(
 		struct term *term_,
 		char *mulop,
 		struct factor *factor_);
-struct factor *new_factor(struct token token);
+struct factor *new_factor(void *ptr, class type);
 struct call *new_call(char *id, struct arg_list *args);
 struct arg_list *new_arg_list();
+
+#include "parse_dump.h"
