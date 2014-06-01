@@ -8,16 +8,16 @@
 #include "globals.h"
 
 /* set NO_ANALYZE to TRUE to get a parser-only compiler */
-#define NO_ANALYZE TRUE
+#define NO_ANALYZE FALSE
 
 /* set NO_CODE to TRUE to get a compiler that does not
  * generate code
  */
-#define NO_CODE FALSE
+#define NO_CODE TRUE
 
 #include "parse.h"
 #if !NO_ANALYZE
-	#include "analyze.h"
+	#include "symtab.h"
 	#if !NO_CODE
 		#include "cgen.h"
 	#endif
@@ -31,7 +31,7 @@ FILE * code;
 
 /* allocate and set tracing flags */
 int EchoSource = TRUE;
-int TraceParse = TRUE;
+int TraceParse = FALSE;
 int TraceAnalyze = FALSE;
 int TraceCode = FALSE;
 

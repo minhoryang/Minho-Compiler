@@ -3,6 +3,8 @@
 #include "globals.h"
 #include "list.h"
 
+#ifndef my_parse
+#define my_parse
 extern FILE *yyin;
 extern FILE *yyout;
 
@@ -227,3 +229,6 @@ struct arg_list *new_arg_list();
 	for(i = 0; i < level; i++) \
 		printf(" "); \
 }while(0);
+#define ALLOC(dest, type) type* dest = _ALLOC(type);
+#define _ALLOC(type) (type *)calloc(1, sizeof(type));
+#endif

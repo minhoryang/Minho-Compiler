@@ -1,6 +1,4 @@
 #include "parse.h"
-#define ALLOC(dest, type) type* dest = _ALLOC(type);
-#define _ALLOC(type) (type *)calloc(1, sizeof(type));
 
 Program * parse(void){
 	Program *ptr = NULL;
