@@ -1,6 +1,6 @@
 CFLAGS = -g -fms-extensions
 
-20091631: lex.yy.o y.tab.o parse.o main.o list.o
+20091631: lex.yy.o y.tab.o parse.o symtab.o main.o list.o
 	gcc -o 20091631 *.o
 
 y.tab.c: c-.y
