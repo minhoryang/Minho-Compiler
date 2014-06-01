@@ -59,7 +59,7 @@ void dump_param(struct param *p, int level){
 }
 
 void dump_compound_stmt(struct compound_stmt *cs, int level){
-	SPACING printf("[Compount Statement]\n");
+	SPACING printf("[Compound Statement]\n");
 	LEVEL_UP;
 	if(cs->local_declarations)
 		printTree((struct _common *)cs->local_declarations, level);
