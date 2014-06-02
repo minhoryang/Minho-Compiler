@@ -184,11 +184,11 @@ Program * parse(void);
 void printTree(struct _common *, int);
 
 Program *new_declaration_list();
-struct var_declaration *new_var_declaration(char *type, char *id, char *size);
-struct fun_declaration *new_fun_declaration(char *type, char *id, struct param_list *params, struct compound_stmt *compound_stmt);
+struct var_declaration *new_var_declaration(char *type, char *id, char *size, int line, int cur);
+struct fun_declaration *new_fun_declaration(char *type, char *id, struct param_list *params, struct compound_stmt *compound_stmt, int line, int cur);
 struct param_list *new_param_list();
-struct param *new_param(char *type_specifier, char *id, bool isArray);
-struct compound_stmt *new_compound_stmt(struct local_declarations *ld, struct statement_list *st);
+struct param *new_param(char *type_specifier, char *id, bool isArray, int line, int cur);
+struct compound_stmt *new_compound_stmt(struct local_declarations *ld, struct statement_list *st, int line, int cur);
 struct local_declarations *new_local_declarations();
 struct statement_list *new_statement_list();
 struct expression_stmt *new_expression_stmt(struct expression *expression);

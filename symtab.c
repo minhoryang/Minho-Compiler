@@ -245,7 +245,7 @@ void _dumpSymtab(struct symtab *this, int level){
 		find_symbols != list_end(this->symbols);
 		find_symbols = list_next(find_symbols)){
 			struct _declaration *c = list_entry(find_symbols, struct _declaration, symelem);
-			TAPING printf(" L%d:%d\t%s\t%s", c->line+1, 0, c->type_specifier, c->name);
+			TAPING printf(" L%d:%d\t%s\t%s", c->line+1, c->cur+1, c->type_specifier, c->name);
 			switch(c->type){
 				case var_declaration:
 					{
@@ -280,7 +280,7 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 				struct declaration_list *dl = (struct declaration_list *)data;
 				{  // XXX IN!
 					list_push_front(_tables, &(dl->symtab->elem));
-					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", dl->line+1, 0, (*cnt)++, dl->symtab->name);
+					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", dl->line+1, dl->cur+1, (*cnt)++, dl->symtab->name);
 					level+=1;
 					_dumpSymtab(dl->symtab, level);
 				}
@@ -303,7 +303,7 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				{	// XXX IN!
 					list_push_front(_tables, &(fd->symtab->elem));
-					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", fd->line+1, 0, (*cnt)++, fd->symtab->name);
+					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", fd->line+1, fd->cur+1, (*cnt)++, fd->symtab->name);
 					level+=1;
 					_dumpSymtab(fd->symtab, level);
 				}
@@ -321,7 +321,7 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 				struct compound_stmt *cs = (struct compound_stmt *)data;
 				if(cs->symtab){  // XXX IN!
 					list_push_front(_tables, &(cs->symtab->elem));
-					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", cs->line+1, 0, (*cnt)++, cs->symtab->name);
+					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", cs->line+1, cs->cur+1, (*cnt)++, cs->symtab->name);
 					level+=1;
 					_dumpSymtab(cs->symtab, level);
 				}

@@ -83,12 +83,14 @@ Program *new_declaration_list(){
 	return one;
 }
 
-struct var_declaration *new_var_declaration(char *type, char *id, char *size){
+struct var_declaration *new_var_declaration(char *type, char *id, char *size, int line, int cur){
 	ALLOC(one, struct var_declaration);
 	one->type_specifier = type;
 	one->name = id;
 	one->size = size;
 	one->type = var_declaration;
+	one->line = line;
+	one->cur = cur;
 	return one;
 }
 
@@ -96,13 +98,17 @@ struct fun_declaration *new_fun_declaration(
 		char *type,
 		char *id,
 		struct param_list *params,
-		struct compound_stmt *compound_stmt){
+		struct compound_stmt *compound_stmt,
+		int line,
+		int cur){
 	ALLOC(one, struct fun_declaration);
 	one->type_specifier = type;
 	one->name = id;
 	one->params = params;
 	one->compound_stmt = compound_stmt;
 	one->type = fun_declaration;
+	one->line = line;
+	one->cur = cur;
 	return one;
 }
 
@@ -114,20 +120,24 @@ struct param_list *new_param_list(){
 	return one;
 }
 
-struct param *new_param(char *type_specifier, char *id, bool isArray){
+struct param *new_param(char *type_specifier, char *id, bool isArray, int line, int cur){
 	ALLOC(one, struct param);
 	one->type_specifier = type_specifier;
 	one->name = id;
 	one->isArray = isArray;
 	one->type = param;
+	one->line = line;
+	one->cur = cur;
 	return one;
 }
 
-struct compound_stmt *new_compound_stmt(struct local_declarations *ld, struct statement_list *st){
+struct compound_stmt *new_compound_stmt(struct local_declarations *ld, struct statement_list *st, int line, int cur){
 	ALLOC(one, struct compound_stmt);
 	one->type = compound_stmt;
 	one->local_declarations = ld;
 	one->statement_list = st;
+	one->line = line;
+	one->cur = cur;
 	return one;
 }
 

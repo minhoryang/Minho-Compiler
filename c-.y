@@ -70,11 +70,11 @@ _declaration : var_declaration
 	         ;
 var_declaration : _type_specifier ID SEMI
                     {
-						$$.link = new_var_declaration($1.lexeme, $2.lexeme, NULL);
+						$$.link = new_var_declaration($1.lexeme, $2.lexeme, NULL, $1.line, $1.cur);
 				    }
                 | _type_specifier ID LEFT_BRACKET NUM RIGHT_BRACKET SEMI
                     {
-						$$.link = new_var_declaration($1.lexeme, $2.lexeme, $4.lexeme);
+						$$.link = new_var_declaration($1.lexeme, $2.lexeme, $4.lexeme, $1.line, $1.cur);
 				    }
 				;
 _type_specifier : INT
@@ -82,7 +82,7 @@ _type_specifier : INT
 			    ;
 fun_declaration : _type_specifier ID LEFT_PARENTHESIS _params RIGHT_PARENTHESIS compound_stmt
                     {
-						$$.link = new_fun_declaration($1.lexeme, $2.lexeme, $4.link, $6.link);
+						$$.link = new_fun_declaration($1.lexeme, $2.lexeme, $4.link, $6.link, $1.line, $1.cur);
 					}
                 ;
 _params : param_list
@@ -121,16 +121,16 @@ param_list : param_list COMMA param
 		   ;
 param : _type_specifier ID
 	      {
-			  $$.link = new_param($1.lexeme, $2.lexeme, false);
+			  $$.link = new_param($1.lexeme, $2.lexeme, false, $1.line, $1.cur);
 		  }
        | _type_specifier ID LEFT_BRACKET RIGHT_BRACKET
 	      {
-			  $$.link = new_param($1.lexeme, $2.lexeme, true);
+			  $$.link = new_param($1.lexeme, $2.lexeme, true, $1.line, $1.cur);
 		  }
 	   ;
 compound_stmt : LEFT_BRACE local_declarations statement_list RIGHT_BRACE
                   {
-					  $$.link = new_compound_stmt($2.link, $3.link);
+					  $$.link = new_compound_stmt($2.link, $3.link, $1.line, $1.cur);
 				  }
               ;
 local_declarations : local_declarations var_declaration
