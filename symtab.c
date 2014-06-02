@@ -62,10 +62,11 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct compound_stmt *cs = (struct compound_stmt *)data;
 				struct symtab *context;
-				if(func_exception){
-					context = (cs->symtab = _allocSymtab(strcat(_context->name, "+c")));
+				if(!func_exception){
+					context = (cs->symtab = _allocSymtab(strdup(_context->name)));
 				}else{
 					context = _context;
+					cs->symtab = NULL;
 				}
 				_buildSymtab((struct _common *)cs->local_declarations, context, false);
 				_buildSymtab((struct _common *)cs->statement_list, context, false);
@@ -232,8 +233,159 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 	}
 }
 
+#define TAPING do{ \
+	int i; \
+	for(i=0;i<level;i++) \
+		printf("\t"); \
+}while(false);
+void _dumpSymtab(struct symtab *this, int level){
+	// TODO list sort.
+	Elem *find_symbols;
+	for(find_symbols = list_begin(this->symbols);
+		find_symbols != list_end(this->symbols);
+		find_symbols = list_next(find_symbols)){
+			struct _declaration *c = list_entry(find_symbols, struct _declaration, symelem);
+			TAPING printf(" L%d:%d\t%s\t%s", c->line+1, 0, c->type_specifier, c->name);
+			switch(c->type){
+				case var_declaration:
+					{
+						struct var_declaration *vd = (struct var_declaration *)c;
+						if(vd->size)
+							printf("[%s]", vd->size);
+					}
+					break;
+				case fun_declaration:
+					{
+						// TODO PARAM?
+						printf("()");
+					}
+					break;
+				case param:
+					{
+						struct param *p = (struct param *)c;
+						if(p->isArray)
+							printf("[]");
+					}
+					break;
+			}
+			printf(";\n");
+	}
+}
+
+void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
+	if(data)
+	switch(data->type){
+		case declaration_list:
+			{
+				struct declaration_list *dl = (struct declaration_list *)data;
+				{  // XXX IN!
+					list_push_front(_tables, &(dl->symtab->elem));
+					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", dl->line+1, 0, (*cnt)++, dl->symtab->name);
+					level+=1;
+					_dumpSymtab(dl->symtab, level);
+				}
+				Elem *find_declaration;
+				for(find_declaration = list_begin(dl->list);
+					find_declaration != list_end(dl->list);
+					find_declaration = list_next(find_declaration)){
+						struct _declaration *this = list_entry(find_declaration, struct _declaration, elem);
+						_traceSymtab((struct _common *)this, _tables, level, cnt);
+				}
+				{	// XXX OUT!
+					list_pop_front(_tables);
+					level-=1;
+				}
+			}
+			break;
+		// var_declaration ignore.
+		case fun_declaration:
+			{
+				struct fun_declaration *fd = (struct fun_declaration *)data;
+				{	// XXX IN!
+					list_push_front(_tables, &(fd->symtab->elem));
+					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", fd->line+1, 0, (*cnt)++, fd->symtab->name);
+					level+=1;
+					_dumpSymtab(fd->symtab, level);
+				}
+				_traceSymtab((struct _common *)fd->compound_stmt, _tables, level, cnt);
+				{	// XXX OUT!
+					list_pop_front(_tables);
+					level-=1;
+				}
+			}
+			break;
+		// param_list ignore.
+		// param ignore.
+		case compound_stmt:
+			{
+				struct compound_stmt *cs = (struct compound_stmt *)data;
+				if(cs->symtab){  // XXX IN!
+					list_push_front(_tables, &(cs->symtab->elem));
+					TAPING printf(" L%d:%d\tScope %d: \"%s\"\n", cs->line+1, 0, (*cnt)++, cs->symtab->name);
+					level+=1;
+					_dumpSymtab(cs->symtab, level);
+				}
+				_traceSymtab((struct _common *)cs->statement_list, _tables, level, cnt);
+				if(cs->symtab){  // XXX OUT!
+					list_pop_front(_tables);
+					level-=1;
+				}
+			}
+			break;
+		// local_declarations ignore.
+		case statement_list:
+			{
+				struct statement_list *sl = (struct statement_list *)data;
+				Elem *find_statement_list;
+				for(find_statement_list = list_begin(sl->list);
+					find_statement_list != list_end(sl->list);
+					find_statement_list = list_next(find_statement_list)){
+						struct _statement *s = list_entry(find_statement_list, struct _statement, elem);
+						_traceSymtab((struct _common *)s, _tables, level, cnt);
+				}
+			}
+			break;
+		// expression_stmt ignore.
+		case selection_stmt:
+			{
+				struct selection_stmt *ss = (struct selection_stmt *)data;
+				if(ss->action)
+					_traceSymtab((struct _common *)ss->action, _tables, level, cnt);
+				if(ss->else_action)
+					_traceSymtab((struct _common *)ss->else_action, _tables, level, cnt);
+			}
+			break;
+		case iteration_stmt:
+			{
+				struct iteration_stmt *is = (struct iteration_stmt *)data;
+				if(is->action)
+					_traceSymtab((struct _common *)is->action, _tables, level, cnt);
+			}
+			break;
+		// return_stmt ignore.
+		// expression ignore.
+		// var ignore.
+		// simple_expression ignore.
+		// additive_expression ignore.
+		// term ignore.
+		// factor ignore.
+		// call ignore.
+		// arg_list ignore.
+		default:
+			break;
+	}
+}
+
 void buildSymtab(Program *prog){
 	_buildSymtab((struct _common *)prog, NULL, false);
+	if(TraceAnalyze){
+		ALLOC(list, List);
+		list_init(list);
+		ALLOC(i, int);
+		_traceSymtab((struct _common *)prog, list, 0, i);
+		free(i);
+		free(list);
+	}
 }
 
 void typeCheck(Program *prog){

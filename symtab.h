@@ -7,6 +7,7 @@
 #ifndef my_symtab
 #define my_symtab
 struct symtab{
+	Elem elem;
 	List *symbols;
 	List *usings;
 	char *name;  // TODO parent?
