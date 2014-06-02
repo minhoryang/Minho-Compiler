@@ -16,6 +16,8 @@
 	yylval.token.id = ret; \
 	yylval.token.line = lineno; \
 	yylval.token.link = NULL; \
+	yylval.token.cur = curno; \
+	curno += strlen(yytext); \
 	return ret; \
 }while(0);
 %}
@@ -58,12 +60,12 @@ whitespace  [ \t]+
 
 {NUM}        {RETURN_LEXEME(NUM);}
 {ID}    {RETURN_LEXEME(ID);}
-{newline}       {lineno++;}
-{whitespace}    {/* skip whitespace */}
+{newline}       {lineno++;curno=0;}
+{whitespace}    {/* skip whitespace */;curno+=strlen(yytext);}
 
 "/*"             { char c; bool assume_comment = false, assume_warn = false, real_warn = false;
                   do
-                  { c = input();
+                  { c = input(); curno++;
 					if(assume_comment){
 						if(c == '/'){
 							break;
@@ -82,6 +84,7 @@ whitespace  [ \t]+
 							RETURN_LEXEME(ERROR);
 						case '\n':
 							lineno++;
+							curno=0;
 							break;
 						case '*':
 							assume_comment = true;

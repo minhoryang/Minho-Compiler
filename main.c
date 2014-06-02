@@ -25,6 +25,7 @@
 
 /* allocate global variables */
 int lineno = 0;
+int curno = 0;
 FILE * source;
 FILE * listing;
 FILE * code;

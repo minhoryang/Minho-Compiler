@@ -24,6 +24,7 @@
 		int id;
 		char *lexeme;
 		int line;
+		int cur;
 		void *link;
 	}token;
 	struct{
