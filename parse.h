@@ -163,8 +163,8 @@ struct factor{
 		struct var *var;
 		struct call *call;
 		char *num;
-	} link; 
-	class linktype;  // check this
+	} content;
+	class contenttype;  // check this
 };
 
 struct call{

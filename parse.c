@@ -252,14 +252,20 @@ struct factor *new_factor(void *ptr, class type){
 	one->type = factor;
 	switch(type){
 		case expression:
+			one->contenttype = type;
+			one->content.expression = ptr;
+			break;
 		case var:
+			one->contenttype = type;
+			one->content.var = ptr;
+			break;
 		case call:
-			one->linktype = type;
-			one->link = ptr;
+			one->contenttype = type;
+			one->content.call = ptr;
 			break;
 		case num:
-			one->linktype = num;
-			one->link = (char *)ptr;
+			one->contenttype = num;
+			one->content.num = (char *)ptr;
 			break;
 	}
 	return one;

@@ -243,14 +243,18 @@ void dump_term(struct term *t, int level){
 void dump_factor(struct factor *f, int level){
 	SPACING printf("[Factor]\n");
 	LEVEL_UP;
-	switch(f->linktype){
+	switch(f->contenttype){
 		case expression:
+			printTree((struct _common *)f->content.expression, level);
+			break;
 		case var:
+			printTree((struct _common *)f->content.var, level);
+			break;
 		case call:
-			printTree((struct _common *)f->link, level);
+			printTree((struct _common *)f->content.call, level);
 			break;
 		case num:
-			SPACING printf("%s\n", (char *)(f->link));
+			SPACING printf("%s\n", (char *)(f->content.num));
 			break;
 	}
 	LEVEL_DOWN;

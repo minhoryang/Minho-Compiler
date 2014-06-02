@@ -193,11 +193,13 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case factor:
 			{
 				struct factor *f = (struct factor *)data;
-				switch(f->linktype){
+				switch(f->contenttype){
 					case expression:
+						_buildSymtab((struct _common *)f->content.expression, _context, false);
 					case var:
+						_buildSymtab((struct _common *)f->content.var, _context, false);
 					case call:
-						_buildSymtab((struct _common *)f->link, _context, false);
+						_buildSymtab((struct _common *)f->content.call, _context, false);
 						break;
 					case num:
 						break;
