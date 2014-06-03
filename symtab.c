@@ -1,12 +1,27 @@
 #include "symtab.h"
 
-struct symtab * _allocSymtab(const char *name){
+struct symtab * _allocSymtab(const char *name, struct symtab *parent){
 	struct symtab *st = _ALLOC(struct symtab);
+	printf("set %X %s\n", st, name);
 	st->name = strdup(name);
 	st->symbols = _ALLOC(List);
 	list_init(st->symbols);
 	st->usings = _ALLOC(List);
 	list_init(st->usings);
+	st->scopes = _ALLOC(List);
+	list_init(st->scopes);
+	struct symtab *t = list_entry(&(st->elem), struct symtab, elem);
+	list_push_back(st->scopes, &(st->elem));
+	if(parent){
+		Elem *e;
+		for(e = list_begin(parent->scopes);
+			e != list_end(parent->scopes);
+			e = list_next(e)){
+				struct symtab *s = list_entry(e, struct symtab, elem);
+				list_push_back(st->scopes, &(s->elem));
+				printf("\tadd %X %s\n", s, s->name);
+		}
+	}
 	return st;
 }
 
@@ -16,7 +31,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case declaration_list:
 			{
 				struct declaration_list *dl = (struct declaration_list *)data;
-				dl->symtab = _allocSymtab("Global");
+				dl->symtab = _allocSymtab("Global", _context);
 				Elem *find_declaration;
 				for(find_declaration = list_begin(dl->list);
 					find_declaration != list_end(dl->list);
@@ -36,7 +51,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				list_push_back(_context->symbols, &(fd->symelem));
-				fd->symtab = _allocSymtab(fd->name);
+				fd->symtab = _allocSymtab(fd->name, _context);
 				_buildSymtab((struct _common *)fd->params, fd->symtab, false);
 				_buildSymtab((struct _common *)fd->compound_stmt, fd->symtab, true);
 			}
@@ -63,7 +78,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct compound_stmt *cs = (struct compound_stmt *)data;
 				struct symtab *context;
 				if(!func_exception){
-					context = (cs->symtab = _allocSymtab(strdup(_context->name)));
+					context = (cs->symtab = _allocSymtab(strdup(_context->name), NULL));
 				}else{
 					context = _context;
 					cs->symtab = NULL;
@@ -382,7 +397,7 @@ void buildSymtab(Program *prog){
 		ALLOC(list, List);
 		list_init(list);
 		ALLOC(i, int);
-		_traceSymtab((struct _common *)prog, list, 0, i);
+		//_traceSymtab((struct _common *)prog, list, 0, i);
 		free(i);
 		free(list);
 	}

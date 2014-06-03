@@ -10,6 +10,7 @@ struct symtab{
 	Elem elem;
 	List *symbols;
 	List *usings;
+	List *scopes;
 	char *name;  // TODO parent?
 };
 
