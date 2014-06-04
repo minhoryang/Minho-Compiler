@@ -11,7 +11,6 @@ struct symtab * _allocSymtab(const char *name, struct symtab *parent){
 	st->scopes = _ALLOC(List);
 	list_init(st->scopes);
 	struct symtab *t = list_entry(&(st->elem), struct symtab, elem);
-	list_push_back(st->scopes, &(st->elem));
 	if(parent){
 		Elem *e;
 		for(e = list_begin(parent->scopes);
@@ -32,6 +31,8 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct declaration_list *dl = (struct declaration_list *)data;
 				dl->symtab = _allocSymtab("Global", _context);
+				if(_context)
+					list_push_front(dl->symtab->scopes, &(_context->elem));
 				Elem *find_declaration;
 				for(find_declaration = list_begin(dl->list);
 					find_declaration != list_end(dl->list);
@@ -52,6 +53,8 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				list_push_back(_context->symbols, &(fd->symelem));
 				fd->symtab = _allocSymtab(fd->name, _context);
+				if(_context)
+					list_push_front(fd->symtab->scopes, &(_context->elem));
 				_buildSymtab((struct _common *)fd->params, fd->symtab, false);
 				_buildSymtab((struct _common *)fd->compound_stmt, fd->symtab, true);
 			}
@@ -78,7 +81,9 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct compound_stmt *cs = (struct compound_stmt *)data;
 				struct symtab *context;
 				if(!func_exception){
-					context = (cs->symtab = _allocSymtab(strdup(_context->name), NULL));
+					context = (cs->symtab = _allocSymtab(strdup(_context->name), _context));
+					if(_context)
+						list_push_front(cs->symtab->scopes, &(_context->elem));
 				}else{
 					context = _context;
 					cs->symtab = NULL;
