@@ -49,7 +49,7 @@ typedef struct _common{
 }_common_inherit;
 typedef struct _symbol_common{
 	_common_inherit;
-	_common_inherit *symlist;
+	struct _symbol_common *symbols;
 	char buff[10];
 	char *name;
 	char buff2[10];

@@ -7,10 +7,9 @@
 #define my_symtab
 struct symtab{
 	struct symtab *parent;
-	Elem elem;
-	List *symbols;
+	struct _symbol_common *symbols;
 	char d[10];
-	List *usings;
+	_common_inherit *usings;
 	char d2[10];
 	char *name;  // TODO parent?
 };
@@ -18,5 +17,5 @@ struct symtab{
 void buildSymtab(Program *prog);
 void typeCheck(Program *prog);
 struct symtab *searchSymtabWhere(struct symtab *from, char *this);
-struct _common *searchSymtab(struct symtab *from, char *this);
+struct _symbol_common *searchSymtab(struct symtab *from, char *this);
 #endif

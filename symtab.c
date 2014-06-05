@@ -3,10 +3,8 @@
 struct symtab * _allocSymtab(const char *name, struct symtab *_parent){
 	struct symtab *st = _ALLOC(struct symtab);
 	st->name = strdup(name);
-	st->symbols = _ALLOC(List);
-	list_init(st->symbols);
-	st->usings = _ALLOC(List);
-	list_init(st->usings);
+	st->symbols = NULL;
+	st->usings = NULL;
 	st->parent = _parent;
 	return st;
 }
@@ -18,25 +16,49 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct declaration_list *dl = (struct declaration_list *)data;
 				dl->symtab = _allocSymtab("Global", _context);
-				Elem *find_declaration;
-				for(find_declaration = list_begin(dl->list);
-					find_declaration != list_end(dl->list);
-					find_declaration = list_next(find_declaration)){
-						struct _declaration *this = list_entry(find_declaration, struct _declaration, elem);
-						_buildSymtab((struct _common *)this, dl->symtab, false);
+				{
+					struct _common *now = dl->list;
+					while(now){
+						_buildSymtab(now, dl->symtab, false);
+						now = ((struct _declaration *)now)->list;
+					}
 				}
 			}
 			break;
 		case var_declaration:
 			{
 				struct var_declaration *vd = (struct var_declaration *)data;
-				list_push_back(_context->symbols, &(vd->symelem));
+				if(_context->symbols){
+					struct _symbol_common *now = (struct _symbol_common *)_context->symbols;
+					while(now){
+						if(now->symbols){
+							now = now->symbols;
+						}else{
+							now->symbols = (struct _symbol_common *)vd;
+							break;
+						}
+					}
+				}else{
+					_context->symbols = (struct _symbol_common *)vd;
+				}
 			}
 			break;
 		case fun_declaration:
 			{
 				struct fun_declaration *fd = (struct fun_declaration *)data;
-				list_push_back(_context->symbols, &(fd->symelem));
+				if(_context->symbols){
+					struct _symbol_common *now = (struct _symbol_common *)_context->symbols;
+					while(now){
+						if(now->symbols){
+							now = now->symbols;
+						}else{
+							now->symbols = (struct _symbol_common *)fd;
+							break;
+						}
+					}
+				}else{
+					_context->symbols = (struct _symbol_common *)fd;
+				}
 				fd->symtab = _allocSymtab(fd->name, _context);
 				_buildSymtab((struct _common *)fd->params, fd->symtab, false);
 				_buildSymtab((struct _common *)fd->compound_stmt, fd->symtab, true);
@@ -45,19 +67,32 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case param_list:
 			{
 				struct param_list *pl = (struct param_list *)data;
-				Elem *find_param;
-				for(find_param = list_begin(pl->list);
-					find_param != list_end(pl->list);
-					find_param = list_next(find_param)){
-						struct param *this = list_entry(find_param, struct param, elem);
-						_buildSymtab((struct _common *)this, _context, false);
+				if(pl->list){
+					_buildSymtab(pl->list, _context, false);
+					struct _common *now = ((struct param *)pl->list)->list;
+					while(now){
+						_buildSymtab(now, _context, false);
+						now = ((struct param *)now)->list;
+					}
 				}
 			}
 			break;
 		case param:
 			{
 				struct param *p = (struct param *)data;
-				list_push_back(_context->symbols, &(p->symelem));
+				if(_context->symbols){
+					struct _symbol_common *now = (struct _symbol_common *)_context->symbols;
+					while(now){
+						if(now->symbols){
+							now = now->symbols;
+						}else{
+							now->symbols = (struct _symbol_common *)p;
+							break;
+						}
+					}
+				}else{
+					_context->symbols = (struct _symbol_common *)p;
+				}
 			}
 		case compound_stmt:
 			{
@@ -76,30 +111,27 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case local_declarations:
 			{
 				struct local_declarations *ld = (struct local_declarations *)data;
-				Elem *find_local_declarations;
-				for(find_local_declarations = list_begin(ld->list);
-					find_local_declarations != list_end(ld->list);
-					find_local_declarations = list_next(find_local_declarations)){
-						struct var_declaration *vd = list_entry(find_local_declarations, struct var_declaration, elem);
-						_buildSymtab((struct _common *)vd, _context, false);
+				struct _common *now = ld->list;
+				while(now){
+					_buildSymtab(now, _context, false);
+					now = ((struct var_declaration *)now)->list;
 				}
 			}
 			break;
 		case statement_list:
 			{
 				struct statement_list *sl = (struct statement_list *)data;
-				Elem *find_statement_list;
-				for(find_statement_list = list_begin(sl->list);
-					find_statement_list != list_end(sl->list);
-					find_statement_list = list_next(find_statement_list)){
-						struct _statement *s = list_entry(find_statement_list, struct _statement, elem);
-						_buildSymtab((struct _common *)s, _context, false);
+				struct _common *now = sl->list;
+				while(now){
+					_buildSymtab(now, _context, false);
+					//printf("%d\n", now->type);
+					now = ((struct _statement *)now)->list;
 				}
 			}
 			break;
 		case expression_stmt:
 			{
-				struct expression *e = (struct expression *)data;
+				struct expression_stmt *e = (struct expression_stmt *)data;
 				if(e->expression)
 					_buildSymtab((struct _common *)e->expression, _context, false);
 			}
@@ -151,9 +183,9 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				{
 					struct symtab *found = searchSymtabWhere(_context, v->name);
 					if(found){
-						list_push_back(found->usings, &(v->symelem));
+						//TODO list_push_back(found->usings, &(v->symelem));
 					}else{
-						list_push_back(_context->usings, &(v->symelem));
+						//TODO list_push_back(_context->usings, &(v->symelem));
 					}
 				}
 				if(v->array)
@@ -224,9 +256,9 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				{
 					struct symtab *found = searchSymtabWhere(_context, c->name);
 					if(found){
-						list_push_back(found->usings, &(c->symelem));
+						//TODO list_push_back(found->usings, &(c->symelem));
 					}else{
-						list_push_back(_context->usings, &(c->symelem));
+						//TODO list_push_back(_context->usings, &(c->symelem));
 					}
 				}
 			}
@@ -234,12 +266,10 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case arg_list:
 			{
 				struct arg_list *al = (struct arg_list *)data;
-				Elem *find_arg_list;
-				for(find_arg_list = list_begin(al->list);
-					find_arg_list != list_end(al->list);
-					find_arg_list = list_next(find_arg_list)){
-						struct expression *e = list_entry(find_arg_list, struct expression, elem);
-						_buildSymtab((struct _common *)e, _context, false);
+				struct _common *now = al->list;
+				while(now){
+					_buildSymtab(now, _context, false);
+					now = ((struct expression *)now)->list;
 				}
 			}
 			break;
@@ -255,11 +285,9 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 }while(false);
 void _dumpSymtab(struct symtab *this, int level){
 	// TODO list sort.
-	Elem *find_symbols;
-	for(find_symbols = list_begin(this->symbols);
-		find_symbols != list_end(this->symbols);
-		find_symbols = list_next(find_symbols)){
-			struct _declaration *c = list_entry(find_symbols, struct _declaration, symelem);
+	struct _symbol_common *now = this->symbols;
+	while(now){
+			struct _declaration *c = (struct _declaration *)now;
 			TAPING printf("%3d:%2d\t%s\t%s", c->line+1, c->cur+1, c->type_specifier, c->name);
 			switch(c->type){
 				case var_declaration:
@@ -294,30 +322,30 @@ void _dumpSymtab(struct symtab *this, int level){
 			}
 			printf("\n");
 			*/
+		now = now->symbols;
 	}
 }
 
-void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
+void _traceSymtab(struct _common *data, int level, int *cnt){
 	if(data)
 	switch(data->type){
 		case declaration_list:
 			{
 				struct declaration_list *dl = (struct declaration_list *)data;
 				{  // XXX IN!
-					list_push_front(_tables, &(dl->symtab->elem));
 					TAPING printf("%3d:%2d\tSCOPE %d: \"%s\"\n", dl->line+1, dl->cur+1, (*cnt)++, dl->symtab->name);
 					level+=1;
 					_dumpSymtab(dl->symtab, level);
 				}
-				Elem *find_declaration;
-				for(find_declaration = list_begin(dl->list);
-					find_declaration != list_end(dl->list);
-					find_declaration = list_next(find_declaration)){
-						struct _declaration *this = list_entry(find_declaration, struct _declaration, elem);
-						_traceSymtab((struct _common *)this, _tables, level, cnt);
+				if(dl->list){
+					_traceSymtab(dl->list, level, cnt);
+					struct _common *now = ((struct _declaration *)dl->list)->list;
+					while(now){
+						_traceSymtab(now, level, cnt);
+						now = ((struct _declaration *)now)->list;
+					}
 				}
 				{	// XXX OUT!
-					list_pop_front(_tables);
 					level-=1;
 				}
 			}
@@ -327,14 +355,12 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 			{
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				{	// XXX IN!
-					list_push_front(_tables, &(fd->symtab->elem));
 					TAPING printf("%3d:%2d\tSCOPE %d: \"%s\"\n", fd->line+1, fd->cur+1, (*cnt)++, fd->symtab->name);
 					level+=1;
 					_dumpSymtab(fd->symtab, level);
 				}
-				_traceSymtab((struct _common *)fd->compound_stmt, _tables, level, cnt);
+				_traceSymtab((struct _common *)fd->compound_stmt, level, cnt);
 				{	// XXX OUT!
-					list_pop_front(_tables);
 					level-=1;
 				}
 			}
@@ -345,14 +371,12 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 			{
 				struct compound_stmt *cs = (struct compound_stmt *)data;
 				if(cs->symtab){  // XXX IN!
-					list_push_front(_tables, &(cs->symtab->elem));
 					TAPING printf("%3d:%2d\tSCOPE %d: \"%s\"\n", cs->line+1, cs->cur+1, (*cnt)++, cs->symtab->name);
 					level+=1;
 					_dumpSymtab(cs->symtab, level);
 				}
-				_traceSymtab((struct _common *)cs->statement_list, _tables, level, cnt);
+				_traceSymtab((struct _common *)cs->statement_list, level, cnt);
 				if(cs->symtab){  // XXX OUT!
-					list_pop_front(_tables);
 					level-=1;
 				}
 			}
@@ -361,12 +385,13 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 		case statement_list:
 			{
 				struct statement_list *sl = (struct statement_list *)data;
-				Elem *find_statement_list;
-				for(find_statement_list = list_begin(sl->list);
-					find_statement_list != list_end(sl->list);
-					find_statement_list = list_next(find_statement_list)){
-						struct _statement *s = list_entry(find_statement_list, struct _statement, elem);
-						_traceSymtab((struct _common *)s, _tables, level, cnt);
+				if(sl->list){
+					_traceSymtab(sl->list, level, cnt);
+					struct _common *now = ((struct _statement *)sl->list)->list;
+					while(now){
+						_traceSymtab(now, level, cnt);
+						now = ((struct _statement *)now)->list;
+					}
 				}
 			}
 			break;
@@ -375,16 +400,16 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 			{
 				struct selection_stmt *ss = (struct selection_stmt *)data;
 				if(ss->action)
-					_traceSymtab((struct _common *)ss->action, _tables, level, cnt);
+					_traceSymtab((struct _common *)ss->action, level, cnt);
 				if(ss->else_action)
-					_traceSymtab((struct _common *)ss->else_action, _tables, level, cnt);
+					_traceSymtab((struct _common *)ss->else_action, level, cnt);
 			}
 			break;
 		case iteration_stmt:
 			{
 				struct iteration_stmt *is = (struct iteration_stmt *)data;
 				if(is->action)
-					_traceSymtab((struct _common *)is->action, _tables, level, cnt);
+					_traceSymtab((struct _common *)is->action, level, cnt);
 			}
 			break;
 		// return_stmt ignore.
@@ -404,18 +429,15 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 void buildSymtab(Program *prog){
 	_buildSymtab((struct _common *)prog, NULL, false);
 	if(TraceAnalyze){
-		ALLOC(list, List);
-		list_init(list);
 		ALLOC(i, int);
-		_traceSymtab((struct _common *)prog, list, 0, i);
+		_traceSymtab((struct _common *)prog, 0, i);
 		free(i);
-		free(list);
 	}
 }
 
 struct symtab *searchSymtabWhere(struct symtab *from, char *this){
 	while(from){
-		struct _common *found = searchSymtab(from, this);
+		struct _symbol_common *found = searchSymtab(from, this);
 		if(found){
 			return from;
 		}
@@ -424,14 +446,15 @@ struct symtab *searchSymtabWhere(struct symtab *from, char *this){
 	return NULL;
 }
 
-struct _common *searchSymtab(struct symtab *from, char *this){
-	Elem *e;
-	for(e = list_begin(from->symbols);
-		e != list_end(from->symbols);
-		e = list_next(e)){
-			struct _symbol_common *c = list_entry(e, struct _symbol_common, symelem);
-			if(strcmp(c->name, this))
-				return c;
+struct _symbol_common *searchSymtab(struct symtab *from, char *this){
+	if(from->symbols){
+		if(strcmp(from->symbols->name, this))
+			return from->symbols;
+		struct _symbol_common *now = ((struct _symbol_common *)from->symbols)->symbols;
+		while(now){
+			if(strcmp(now->name, this))
+				return now;
+		}
 	}
 	return NULL;
 }

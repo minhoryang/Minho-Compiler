@@ -97,6 +97,7 @@ struct var_declaration *new_var_declaration(char *type, char *id, char *size, in
 	one->line = line;
 	one->cur = cur;
 	one->list = NULL;
+	one->symbols = NULL;
 	return one;
 }
 
@@ -116,6 +117,7 @@ struct fun_declaration *new_fun_declaration(
 	one->line = line;
 	one->cur = cur;
 	one->list = NULL;
+	one->symbols = NULL;
 	return one;
 }
 
@@ -135,6 +137,7 @@ struct param *new_param(char *type_specifier, char *id, bool isArray, int line, 
 	one->line = line;
 	one->cur = cur;
 	one->list = NULL;
+	one->symbols = NULL;
 	return one;
 }
 
@@ -228,6 +231,7 @@ struct var *new_var(char *id, struct expression *array){
 	one->type = var;
 	one->name = _strdup(id);
 	one->array = array;
+	one->symbols = NULL;
 	return one;
 }
 
@@ -296,6 +300,7 @@ struct call *new_call(char *id, struct arg_list *args){
 	one->type = call;
 	one->name = _strdup(id);
 	one->args = args;
+	one->symbols = NULL;
 	return one;
 }
 
