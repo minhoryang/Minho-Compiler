@@ -10,19 +10,24 @@ struct symtab * _allocSymtab(const char *name){
 	return st;
 }
 
-void _buildSymtab(struct _common *data, struct symtab *_context, bool func_exception){
+void _buildSymtab(struct _common *data, struct symtab *_context, List *_scopes, bool func_exception){
 	if(data)
 	switch(data->type){
 		case declaration_list:
 			{
 				struct declaration_list *dl = (struct declaration_list *)data;
 				dl->symtab = _allocSymtab("Global");
+				{
+					_scopes = _ALLOC(List);
+					list_init(_scopes);
+					list_push_front(_scopes, &(dl->symtab->scopes_elem));
+				}
 				Elem *find_declaration;
 				for(find_declaration = list_begin(dl->list);
 					find_declaration != list_end(dl->list);
 					find_declaration = list_next(find_declaration)){
 						struct _declaration *this = list_entry(find_declaration, struct _declaration, elem);
-						_buildSymtab((struct _common *)this, dl->symtab, false);
+						_buildSymtab((struct _common *)this, dl->symtab, _scopes, false);
 				}
 			}
 			break;
@@ -37,8 +42,23 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				list_push_back(_context->symbols, &(fd->symelem));
 				fd->symtab = _allocSymtab(fd->name);
-				_buildSymtab((struct _common *)fd->params, fd->symtab, false);
-				_buildSymtab((struct _common *)fd->compound_stmt, fd->symtab, true);
+				{
+					ALLOC(scopes, List);
+					list_init(scopes);
+					list_push_front(scopes, &(fd->symtab->scopes_elem));
+					{
+						Elem *e;
+						for(e = list_begin(_scopes);
+							e != list_end(_scopes);
+							e = list_next(e)){
+								list_push_back(scopes, e);
+								printf("%X\n", e);
+						}
+					}
+					_scopes = scopes;
+				}
+				_buildSymtab((struct _common *)fd->params, fd->symtab, _scopes, false);
+				_buildSymtab((struct _common *)fd->compound_stmt, fd->symtab, _scopes, true);
 			}
 			break;
 		case param_list:
@@ -49,7 +69,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 					find_param != list_end(pl->list);
 					find_param = list_next(find_param)){
 						struct param *this = list_entry(find_param, struct param, elem);
-						_buildSymtab((struct _common *)this, _context, false);
+						_buildSymtab((struct _common *)this, _context, _scopes, false);
 				}
 			}
 			break;
@@ -64,12 +84,15 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct symtab *context;
 				if(!func_exception){
 					context = (cs->symtab = _allocSymtab(strdup(_context->name)));
+					{
+						;  // TODO
+					}
 				}else{
 					context = _context;
 					cs->symtab = NULL;
 				}
-				_buildSymtab((struct _common *)cs->local_declarations, context, false);
-				_buildSymtab((struct _common *)cs->statement_list, context, false);
+				_buildSymtab((struct _common *)cs->local_declarations, context, _scopes, false);
+				_buildSymtab((struct _common *)cs->statement_list, context, _scopes, false);
 			}
 			break;
 		case local_declarations:
@@ -80,7 +103,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 					find_local_declarations != list_end(ld->list);
 					find_local_declarations = list_next(find_local_declarations)){
 						struct var_declaration *vd = list_entry(find_local_declarations, struct var_declaration, elem);
-						_buildSymtab((struct _common *)vd, _context, false);
+						_buildSymtab((struct _common *)vd, _context, _scopes, false);
 				}
 			}
 			break;
@@ -92,7 +115,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 					find_statement_list != list_end(sl->list);
 					find_statement_list = list_next(find_statement_list)){
 						struct _statement *s = list_entry(find_statement_list, struct _statement, elem);
-						_buildSymtab((struct _common *)s, _context, false);
+						_buildSymtab((struct _common *)s, _context, _scopes, false);
 				}
 			}
 			break;
@@ -100,34 +123,34 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct expression *e = (struct expression *)data;
 				if(e->expression)
-					_buildSymtab((struct _common *)e->expression, _context, false);
+					_buildSymtab((struct _common *)e->expression, _context, _scopes, false);
 			}
 			break;
 		case selection_stmt:
 			{
 				struct selection_stmt *ss = (struct selection_stmt *)data;
 				if(ss->condition)
-					_buildSymtab((struct _common *)ss->condition, _context, false);
+					_buildSymtab((struct _common *)ss->condition, _context, _scopes, false);
 				if(ss->action)
-					_buildSymtab((struct _common *)ss->action, _context, false);
+					_buildSymtab((struct _common *)ss->action, _context, _scopes, false);
 				if(ss->else_action)
-					_buildSymtab((struct _common *)ss->else_action, _context, false);
+					_buildSymtab((struct _common *)ss->else_action, _context, _scopes, false);
 			}
 			break;
 		case iteration_stmt:
 			{
 				struct iteration_stmt *is = (struct iteration_stmt *)data;
 				if(is->condition)
-					_buildSymtab((struct _common *)is->condition, _context, false);
+					_buildSymtab((struct _common *)is->condition, _context, _scopes, false);
 				if(is->action)
-					_buildSymtab((struct _common *)is->action, _context, false);
+					_buildSymtab((struct _common *)is->action, _context, _scopes, false);
 			}
 			break;
 		case return_stmt:
 			{
 				struct return_stmt *rs = (struct return_stmt *)data;
 				if(rs->return_expression)
-					_buildSymtab((struct _common *)rs->return_expression, _context, false);
+					_buildSymtab((struct _common *)rs->return_expression, _context, _scopes, false);
 			}
 			break;
 		case expression:
@@ -135,12 +158,12 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct expression *e = (struct expression *)data;
 				if(e->isAssign){
 					if(e->var)
-						_buildSymtab((struct _common *)e->var, _context, false);
+						_buildSymtab((struct _common *)e->var, _context, _scopes, false);
 					if(e->expression)
-						_buildSymtab((struct _common *)e->expression, _context, false);
+						_buildSymtab((struct _common *)e->expression, _context, _scopes, false);
 				}else{
 					if(e->simple_expression)
-						_buildSymtab((struct _common *)e->simple_expression, _context, false);
+						_buildSymtab((struct _common *)e->simple_expression, _context, _scopes, false);
 				}
 			}
 			break;
@@ -149,18 +172,18 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct var *v = (struct var *)data;
 				list_push_back(_context->usings, &(v->symelem));
 				if(v->array)
-					_buildSymtab((struct _common *)v->array, _context, false);
+					_buildSymtab((struct _common *)v->array, _context, _scopes, false);
 			}
 			break;
 		case simple_expression:
 			{
 				struct simple_expression *se = (struct simple_expression *)data;
 				if(se->left){
-					_buildSymtab((struct _common *)se->left, _context, false);
+					_buildSymtab((struct _common *)se->left, _context, _scopes, false);
 				}
 				if(se->relop){
 					if(se->right){
-						_buildSymtab((struct _common *)se->right, _context, false);
+						_buildSymtab((struct _common *)se->right, _context, _scopes, false);
 					}
 				}
 			}
@@ -170,11 +193,11 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct additive_expression *ae = (struct additive_expression *)data;
 				if(ae->addop){
 					if(ae->additive_expression){
-						_buildSymtab((struct _common *)ae->additive_expression, _context, false);
+						_buildSymtab((struct _common *)ae->additive_expression, _context, _scopes, false);
 					}
 				}
 				if(ae->term){
-					_buildSymtab((struct _common *)ae->term, _context, false);
+					_buildSymtab((struct _common *)ae->term, _context, _scopes, false);
 				}
 			}
 			break;
@@ -183,11 +206,11 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct term *t = (struct term *)data;
 				if(t->mulop){
 					if(t->term){
-						_buildSymtab((struct _common *)t->term, _context, false);
+						_buildSymtab((struct _common *)t->term, _context, _scopes, false);
 					}
 				}
 				if(t->factor){
-					_buildSymtab((struct _common *)t->factor, _context, false);
+					_buildSymtab((struct _common *)t->factor, _context, _scopes, false);
 				}
 			}
 			break;
@@ -196,11 +219,11 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct factor *f = (struct factor *)data;
 				switch(f->contenttype){
 					case expression:
-						_buildSymtab((struct _common *)f->content.expression, _context, false);
+						_buildSymtab((struct _common *)f->content.expression, _context, _scopes, false);
 					case var:
-						_buildSymtab((struct _common *)f->content.var, _context, false);
+						_buildSymtab((struct _common *)f->content.var, _context, _scopes, false);
 					case call:
-						_buildSymtab((struct _common *)f->content.call, _context, false);
+						_buildSymtab((struct _common *)f->content.call, _context, _scopes, false);
 						break;
 					case num:
 						break;
@@ -211,7 +234,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct call *c = (struct call *)data;
 				if(c->args){
-					_buildSymtab((struct _common *)c->args, _context, false);
+					_buildSymtab((struct _common *)c->args, _context, _scopes, false);
 				}
 				list_push_back(_context->usings, &(c->symelem));
 			}
@@ -224,7 +247,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 					find_arg_list != list_end(al->list);
 					find_arg_list = list_next(find_arg_list)){
 						struct expression *e = list_entry(find_arg_list, struct expression, elem);
-						_buildSymtab((struct _common *)e, _context, false);
+						_buildSymtab((struct _common *)e, _context, _scopes, false);
 				}
 			}
 			break;
@@ -377,7 +400,10 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 }
 
 void buildSymtab(Program *prog){
-	_buildSymtab((struct _common *)prog, NULL, false);
+	{
+		List *_scopes;
+		_buildSymtab((struct _common *)prog, NULL, _scopes, false);
+	}
 	if(TraceAnalyze){
 		ALLOC(list, List);
 		list_init(list);

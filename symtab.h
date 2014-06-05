@@ -8,6 +8,7 @@
 #define my_symtab
 struct symtab{
 	Elem elem;
+	Elem scopes_elem;
 	List *symbols;
 	List *usings;
 	char *name;  // TODO parent?
