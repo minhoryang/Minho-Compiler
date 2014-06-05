@@ -75,6 +75,12 @@ void printTree(struct _common *data, int level){
 	}
 }
 
+char *_strdup(char *in){
+	if(in)
+		return strdup(in);
+	return NULL;
+}
+
 Program *new_declaration_list(){
 	ALLOC(one, Program);
 	one->list = _ALLOC(List);
@@ -85,9 +91,9 @@ Program *new_declaration_list(){
 
 struct var_declaration *new_var_declaration(char *type, char *id, char *size, int line, int cur){
 	ALLOC(one, struct var_declaration);
-	one->type_specifier = type;
-	one->name = id;
-	one->size = size;
+	one->type_specifier = _strdup(type);
+	one->name = _strdup(id);
+	one->size = _strdup(size);
 	one->type = var_declaration;
 	one->line = line;
 	one->cur = cur;
@@ -102,8 +108,8 @@ struct fun_declaration *new_fun_declaration(
 		int line,
 		int cur){
 	ALLOC(one, struct fun_declaration);
-	one->type_specifier = type;
-	one->name = id;
+	one->type_specifier = _strdup(type);
+	one->name = _strdup(id);
 	one->params = params;
 	one->compound_stmt = compound_stmt;
 	one->type = fun_declaration;
@@ -122,8 +128,8 @@ struct param_list *new_param_list(){
 
 struct param *new_param(char *type_specifier, char *id, bool isArray, int line, int cur){
 	ALLOC(one, struct param);
-	one->type_specifier = type_specifier;
-	one->name = id;
+	one->type_specifier = _strdup(type_specifier);
+	one->name = _strdup(id);
 	one->isArray = isArray;
 	one->type = param;
 	one->line = line;
@@ -216,7 +222,7 @@ struct expression *new_expression_simple(
 struct var *new_var(char *id, struct expression *array){
 	ALLOC(one, struct var);
 	one->type = var;
-	one->name = id;
+	one->name = _strdup(id);
 	one->array = array;
 	return one;
 }
@@ -228,7 +234,7 @@ struct simple_expression *new_simple_expression(
 	ALLOC(one, struct simple_expression);
 	one->type = simple_expression;
 	one->left = left;
-	one->relop = relop;
+	one->relop = _strdup(relop);
 	one->right = right;
 	return one;
 }
@@ -240,7 +246,7 @@ struct additive_expression *new_additive_expression(
 	ALLOC(one, struct additive_expression);
 	one->type = additive_expression;
 	one->additive_expression = additive_expression_;
-	one->addop = addop;
+	one->addop = _strdup(addop);
 	one->term = term;
 	return one;
 }
@@ -252,7 +258,7 @@ struct term *new_term(
 	ALLOC(one, struct term);
 	one->type = term;
 	one->term = term_;
-	one->mulop = mulop;
+	one->mulop = _strdup(mulop);
 	one->factor = factor_;
 	return one;
 }
@@ -275,7 +281,7 @@ struct factor *new_factor(void *ptr, class type){
 			break;
 		case num:
 			one->contenttype = num;
-			one->content.num = (char *)ptr;
+			one->content.num = _strdup((char *)ptr);
 			break;
 	}
 	return one;
@@ -284,7 +290,7 @@ struct factor *new_factor(void *ptr, class type){
 struct call *new_call(char *id, struct arg_list *args){
 	ALLOC(one, struct call);
 	one->type = call;
-	one->name = id;
+	one->name = _strdup(id);
 	one->args = args;
 	return one;
 }

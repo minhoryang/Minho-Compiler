@@ -1,12 +1,13 @@
 #include "symtab.h"
 
-struct symtab * _allocSymtab(const char *name){
+struct symtab * _allocSymtab(const char *name, struct symtab *_parent){
 	struct symtab *st = _ALLOC(struct symtab);
 	st->name = strdup(name);
 	st->symbols = _ALLOC(List);
 	list_init(st->symbols);
 	st->usings = _ALLOC(List);
 	list_init(st->usings);
+	st->parent = _parent;
 	return st;
 }
 
@@ -16,7 +17,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case declaration_list:
 			{
 				struct declaration_list *dl = (struct declaration_list *)data;
-				dl->symtab = _allocSymtab("Global");
+				dl->symtab = _allocSymtab("Global", _context);
 				Elem *find_declaration;
 				for(find_declaration = list_begin(dl->list);
 					find_declaration != list_end(dl->list);
@@ -36,7 +37,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				list_push_back(_context->symbols, &(fd->symelem));
-				fd->symtab = _allocSymtab(fd->name);
+				fd->symtab = _allocSymtab(fd->name, _context);
 				_buildSymtab((struct _common *)fd->params, fd->symtab, false);
 				_buildSymtab((struct _common *)fd->compound_stmt, fd->symtab, true);
 			}
@@ -63,7 +64,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct compound_stmt *cs = (struct compound_stmt *)data;
 				struct symtab *context;
 				if(!func_exception){
-					context = (cs->symtab = _allocSymtab(strdup(_context->name)));
+					context = (cs->symtab = _allocSymtab(_context->name, _context));
 				}else{
 					context = _context;
 					cs->symtab = NULL;
@@ -147,7 +148,14 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case var:
 			{
 				struct var *v = (struct var *)data;
-				list_push_back(_context->usings, &(v->symelem));
+				{
+					struct symtab *found = searchSymtabWhere(_context, v->name);
+					if(found){
+						list_push_back(found->usings, &(v->symelem));
+					}else{
+						list_push_back(_context->usings, &(v->symelem));
+					}
+				}
 				if(v->array)
 					_buildSymtab((struct _common *)v->array, _context, false);
 			}
@@ -213,7 +221,14 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				if(c->args){
 					_buildSymtab((struct _common *)c->args, _context, false);
 				}
-				list_push_back(_context->usings, &(c->symelem));
+				{
+					struct symtab *found = searchSymtabWhere(_context, c->name);
+					if(found){
+						list_push_back(found->usings, &(c->symelem));
+					}else{
+						list_push_back(_context->usings, &(c->symelem));
+					}
+				}
 			}
 			break;
 		case arg_list:
@@ -269,6 +284,16 @@ void _dumpSymtab(struct symtab *this, int level){
 					break;
 			}
 			printf(";\n");
+			/*{
+				Elem *find_usage;
+				for(find_usage = list_begin(this->usings);
+					find_usage != list_end(this->usings);
+					find_usage = list_next(find_usage)){
+					//	struct _symbol_common *sc = list_entry(find_usage, struct _symbol_common, symelem);
+				}
+			}
+			printf("\n");
+			*/
 	}
 }
 
@@ -386,6 +411,29 @@ void buildSymtab(Program *prog){
 		free(i);
 		free(list);
 	}
+}
+
+struct symtab *searchSymtabWhere(struct symtab *from, char *this){
+	while(from){
+		struct _common *found = searchSymtab(from, this);
+		if(found){
+			return from;
+		}
+		from = from->parent;
+	}
+	return NULL;
+}
+
+struct _common *searchSymtab(struct symtab *from, char *this){
+	Elem *e;
+	for(e = list_begin(from->symbols);
+		e != list_end(from->symbols);
+		e = list_next(e)){
+			struct _symbol_common *c = list_entry(e, struct _symbol_common, symelem);
+			if(strcmp(c->name, this))
+				return c;
+	}
+	return NULL;
 }
 
 void typeCheck(Program *prog){
