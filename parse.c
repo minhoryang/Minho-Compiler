@@ -83,8 +83,7 @@ char *_strdup(char *in){
 
 Program *new_declaration_list(){
 	ALLOC(one, Program);
-	one->list = _ALLOC(List);
-	list_init(one->list);
+	one->list = NULL;
 	one->type = declaration_list;
 	return one;
 }
@@ -97,6 +96,7 @@ struct var_declaration *new_var_declaration(char *type, char *id, char *size, in
 	one->type = var_declaration;
 	one->line = line;
 	one->cur = cur;
+	one->list = NULL;
 	return one;
 }
 
@@ -115,13 +115,13 @@ struct fun_declaration *new_fun_declaration(
 	one->type = fun_declaration;
 	one->line = line;
 	one->cur = cur;
+	one->list = NULL;
 	return one;
 }
 
 struct param_list *new_param_list(){
 	ALLOC(one, struct param_list);
-	one->list = _ALLOC(List);
-	list_init(one->list);
+	one->list = NULL;
 	one->type = param_list;
 	return one;
 }
@@ -134,6 +134,7 @@ struct param *new_param(char *type_specifier, char *id, bool isArray, int line, 
 	one->type = param;
 	one->line = line;
 	one->cur = cur;
+	one->list = NULL;
 	return one;
 }
 
@@ -150,16 +151,14 @@ struct compound_stmt *new_compound_stmt(struct local_declarations *ld, struct st
 struct local_declarations *new_local_declarations(){
 	ALLOC(one, struct local_declarations);
 	one->type = local_declarations;
-	one->list = _ALLOC(List);
-	list_init(one->list);
+	one->list = NULL;
 	return one;
 }
 
 struct statement_list *new_statement_list(){
 	ALLOC(one, struct statement_list);
 	one->type = statement_list;
-	one->list = _ALLOC(List);
-	list_init(one->list);
+	one->list = NULL;
 	return one;
 }
 
@@ -167,6 +166,7 @@ struct expression_stmt *new_expression_stmt(struct expression *expression){
 	ALLOC(one, struct expression_stmt);
 	one->type = expression_stmt;
 	one->expression = expression;
+	one->list = NULL;
 	return one;
 }
 
@@ -179,6 +179,7 @@ struct selection_stmt *new_selection_stmt(
 	one->condition = condition;
 	one->action = action;
 	one->else_action = else_action;
+	one->list = NULL;
 	return one;
 }
 
@@ -189,6 +190,7 @@ struct iteration_stmt *new_iteration_stmt(
 	one->type = iteration_stmt;
 	one->condition = condition;
 	one->action = action;
+	one->list = NULL;
 	return one;
 }
 
@@ -196,6 +198,7 @@ struct return_stmt *new_return_stmt(struct expression *return_expression){
 	ALLOC(one, struct return_stmt);
 	one->type = return_stmt;
 	one->return_expression = return_expression;
+	one->list = NULL;
 	return one;
 }
 
@@ -207,6 +210,7 @@ struct expression *new_expression_assign(
 	one->isAssign = true;
 	one->var = var;
 	one->expression = expression_;
+	one->list = NULL;
 	return one;
 }
 
@@ -298,8 +302,7 @@ struct call *new_call(char *id, struct arg_list *args){
 struct arg_list *new_arg_list(){
 	ALLOC(one, struct arg_list);
 	one->type = arg_list;
-	one->list = _ALLOC(List);
-	list_init(one->list);
+	one->list = NULL;
 	return one;
 }
 

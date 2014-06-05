@@ -45,10 +45,15 @@ declaration_list : declaration_list _declaration
 						 $$ = $1;  // XXX merge.
 						 {
 							 struct declaration_list *args = (struct declaration_list *)($$.link);
-							 List *list = args->list;
-							 {
-								 struct _declaration *exp = (struct _declaration *)($2.link);
-								 list_push_back(list, &(exp->elem));
+							 struct _declaration *exp = (struct _declaration *)($2.link);
+							 struct _declaration *now = (struct _declaration *)args->list;
+							 while(now){
+								 if(now->list)
+									now = (struct _declaration *)now->list;
+								 else{
+									now->list = (struct _common *)exp;
+									break;
+								 }
 							 }
 						 }
 					 }
@@ -57,11 +62,8 @@ declaration_list : declaration_list _declaration
 						 $$.link = new_declaration_list();
 						 {
 							 struct declaration_list *args = (struct declaration_list *)($$.link);
-							 List *list = args->list;
-							 {
-								 struct _declaration *exp = (struct _declaration *)($1.link);
-								 list_push_back(list, &(exp->elem));
-							 }
+							 struct _declaration *exp = (struct _declaration *)($1.link);
+							 args->list = (_common_inherit *)exp;
 						 }
 					 }
 				 ;
@@ -99,10 +101,15 @@ param_list : param_list COMMA param
 				   $$ = $1;
 				   {
 					   struct param_list *args = (struct param_list *)($$.link);
-					   List *list = args->list;
-					   {
-						   struct param *exp = (struct param *)($3.link);
-						   list_push_back(list, &(exp->elem));
+					   struct param *exp = (struct param *)($3.link);
+					   struct param *now = (struct param *)args->list;
+					   while(now){
+						   if(now->list)
+								now = (struct param *)now->list;
+						   else{
+								now->list = (struct _common *)exp;
+								break;
+						   }
 					   }
 				   }
 			   }
@@ -111,11 +118,8 @@ param_list : param_list COMMA param
 				   $$.link = new_param_list();
 				   {
 					   struct param_list *args = (struct param_list *)($$.link);
-					   List *list = args->list;
-					   {
-						   struct param *exp = (struct param *)($1.link);
-						   list_push_back(list, &(exp->elem));
-					   }
+					   struct param *exp = (struct param *)($1.link);
+					   args->list = (struct _common *)exp;
 				   }
 			   }
 		   ;
@@ -138,10 +142,19 @@ local_declarations : local_declarations var_declaration
 						   $$ = $1;
 						   {
 							   struct local_declarations *args = (struct local_declarations *)($$.link);
-							   List *list = args->list;
-							   {
-								   struct var_declaration *exp = (struct var_declaration *)($2.link);
-								   list_push_back(list, &(exp->elem));
+							   struct var_declaration *exp = (struct var_declaration *)($2.link);
+							   if(args->list){
+								   struct var_declaration *now = (struct var_declaration *)args->list;
+								   while(now){
+									   if(now->list){
+										   now = (struct var_declaration *)now->list;
+									   }else{
+										   now->list = (struct _common *)exp;
+										   break;
+									   }
+								   }
+							   }else{
+								   args->list = (struct _common *)exp;
 							   }
 						   }
 					   }
@@ -155,10 +168,19 @@ statement_list : statement_list _statement
 					   $$ = $1;
 					   {
 						   struct statement_list *args = (struct statement_list *)($$.link);
-						   List *list = args->list;
-						   {
-							   struct _statement *exp = (struct _statement *)($2.link);
-							   list_push_back(list, &(exp->elem));
+						   struct _statement *exp = (struct _statement *)($2.link);
+						   if(args->list){
+							   struct _statement *now = (struct _statement *)args->list;
+							   while(now){
+								   if(now->list)
+										now = (struct _statement *)now->list;
+								   else{
+										now->list = (struct _common *)exp;
+										break;
+								   }
+							   }
+						   }else{
+							   args->list = (struct _common *)exp;
 						   }
 					   }
 				   }
@@ -295,10 +317,15 @@ arg_list : arg_list COMMA expression
 				 $$ = $1;
 				 {
 					 struct arg_list *args = (struct arg_list *)($$.link);
-					 List *list = args->list;
-					 {
-						 struct expression *exp = (struct expression *)($3.link);
-						 list_push_back(list, &(exp->elem));
+					 struct expression *exp = (struct expression *)($3.link);
+					 struct expression *now = (struct expression *)args->list;
+					 while(now){
+						 if(now->list)
+							now = (struct expression *)now->list;
+						 else{
+							now->list = (struct _common *)exp;
+							break;
+						 }
 					 }
 				 }
 			 }
@@ -306,11 +333,8 @@ arg_list : arg_list COMMA expression
 		     {
 				 $$.link = new_arg_list();
 				 struct arg_list *args = (struct arg_list *)($$.link);
-				 List *list = args->list;
-				 {
-					 struct expression *exp = (struct expression *)($1.link);
-					 list_push_back(list, &(exp->elem));
-				 }
+				 struct expression *exp = (struct expression *)($1.link);
+				 args->list = (struct _common *)exp;
 			 }
 		 ;
 %%

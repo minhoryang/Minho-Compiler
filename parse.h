@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "globals.h"
-#include "list.h"
 
 #ifndef my_parse
 #define my_parse
@@ -49,7 +49,7 @@ typedef struct _common{
 }_common_inherit;
 typedef struct _symbol_common{
 	_common_inherit;
-	Elem symelem;
+	_common_inherit *symlist;
 	char buff[10];
 	char *name;
 	char buff2[10];
@@ -57,12 +57,12 @@ typedef struct _symbol_common{
 
 typedef struct declaration_list{  // XXX done
 	_common_inherit;
-	List *list;
+	_common_inherit *list;
 	struct symtab *symtab;
 }Program;
 typedef struct _declaration{  // XXX done
 	_symbol_common_inherit;
-	Elem elem;
+	_common_inherit *list;
 	char *type_specifier;
 }_declaration_inherit;
 struct var_declaration{
@@ -78,7 +78,7 @@ struct fun_declaration{
 
 struct param_list{
 	_common_inherit;
-	List *list;
+	_common_inherit *list;
 };
 typedef _declaration_inherit _param_inherit;
 struct param{
@@ -94,15 +94,15 @@ struct compound_stmt{
 };
 struct local_declarations{
 	_common_inherit;
-	List *list;
+	_common_inherit *list;
 };
 struct statement_list{
 	_common_inherit;
-	List *list;
+	_common_inherit *list;
 };
 typedef struct _statement{
 	_common_inherit;
-	Elem elem;
+	_common_inherit *list;
 }_statement_inherit;
 struct expression_stmt{
 	_statement_inherit;
@@ -132,7 +132,7 @@ struct expression{
 	// false
 	struct simple_expression *simple_expression;
 	// arg_list
-	Elem elem;
+	_common_inherit *list;
 };
 struct var{
 	_symbol_common_inherit;
@@ -176,7 +176,7 @@ struct call{
 };
 struct arg_list{
 	_common_inherit;
-	List *list;
+	_common_inherit *list;
 };
 
 

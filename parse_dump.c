@@ -1,12 +1,15 @@
 void dump_declaration_list(struct declaration_list *dl, int level){
-	Elem *find_declaration;
-	for(find_declaration = list_begin(dl->list);
-		find_declaration != list_end(dl->list);
-		find_declaration = list_next(find_declaration)){
-			struct _declaration *this = list_entry(find_declaration, struct _declaration, elem);
+	if(dl->list){
+		LEVEL_UP;
+		printTree(dl->list, level);
+		LEVEL_DOWN;
+		struct _common *now = ((struct _declaration *)(dl->list))->list;
+		while(now){
 			LEVEL_UP;
-			printTree((struct _common *)this, level);
+			printTree((struct _common *)now, level);
 			LEVEL_DOWN;
+			now = ((struct _declaration *)now)->list;
+		}
 	}
 }
 
@@ -36,15 +39,18 @@ void dump_fun_declaration(struct fun_declaration *fd, int level){
 
 void dump_param_list(struct param_list *pl, int level){
 	SPACING printf("[Param List]\n");
-	LEVEL_UP;
-	Elem *e;
-	for(e = list_begin(pl->list);
-		e != list_end(pl->list);
-		e = list_next(e)){
-		struct param *p = list_entry(e, struct param, elem);
-		printTree((struct _common *)p, level);
+	if(pl->list){
+		LEVEL_UP;
+		printTree((struct _common *)pl->list, level);
+		LEVEL_DOWN;
+		struct _common *now = ((struct param *)(pl->list))->list;
+		while(now){
+			LEVEL_UP;
+			printTree((struct _common *)now, level);
+			LEVEL_DOWN;
+			now = ((struct param *)now)->list;
+		}
 	}
-	LEVEL_DOWN;
 }
 
 void dump_param(struct param *p, int level){
@@ -70,28 +76,34 @@ void dump_compound_stmt(struct compound_stmt *cs, int level){
 
 void dump_local_declarations(struct local_declarations *ld, int level){
 	SPACING printf("[Local Declared]\n");
-	LEVEL_UP;
-	Elem *e;
-	for(e = list_begin(ld->list);
-		e != list_end(ld->list);
-		e = list_next(e)){
-		struct var_declaration *vd = list_entry(e, struct var_declaration, elem);
-	   printTree((struct _common *)vd, level);	
+	if(ld->list){
+		LEVEL_UP;
+		printTree(ld->list, level);
+		LEVEL_DOWN;
+		struct _common *now = ((struct var_declaration *)(ld->list))->list;
+		while(now){
+			LEVEL_UP;
+			printTree((struct _common *)now, level);
+			LEVEL_DOWN;
+			now = ((struct var_declaration *)now)->list;
+		}
 	}
-	LEVEL_DOWN;
 }
 
 void dump_statement_list(struct statement_list *sl, int level){
 	SPACING printf("[Statement List]\n");
-	LEVEL_UP;
-	Elem *e;
-	for(e = list_begin(sl->list);
-		e != list_end(sl->list);
-		e = list_next(e)){
-		struct _statement *s = list_entry(e, struct _statement, elem);
-		printTree((struct _common *)s, level);
+	if(sl->list){
+		LEVEL_UP;
+		printTree(sl->list, level);
+		LEVEL_DOWN;
+		struct _common *now = ((struct _statement *)sl->list)->list;
+		while(now){
+			LEVEL_UP;
+			printTree(now, level);
+			LEVEL_DOWN;
+			now = ((struct _statement *)now)->list;
+		}
 	}
-	LEVEL_DOWN;
 }
 
 void dump_expression_stmt(struct expression_stmt *ex, int level){
@@ -275,14 +287,17 @@ void dump_call(struct call *c, int level){
 void dump_arg_list(struct arg_list *al, int level){
 	{
 		SPACING printf("[Arg List]\n");
-		LEVEL_UP;
-		Elem *e;
-		for(e = list_begin(al->list);
-			e != list_end(al->list);
-			e = list_next(e)){
-			struct expression *my = list_entry(e, struct expression, elem);
-			printTree((struct _common *)my, level);
+		if(al->list){
+			//LEVEL_UP;
+			printTree(al->list, level);
+			//LEVEL_DOWN;
+			struct _common *now = ((struct expression *)al->list)->list;
+			while(now){
+				//LEVEL_UP;
+				printTree(now, level);
+				//LEVEL_DOWN;
+				now = ((struct expression *)now)->list;
+			}
 		}
-		LEVEL_DOWN;
 	}
 }
