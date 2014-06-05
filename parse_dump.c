@@ -288,14 +288,14 @@ void dump_arg_list(struct arg_list *al, int level){
 	{
 		SPACING printf("[Arg List]\n");
 		if(al->list){
-			//LEVEL_UP;
+			LEVEL_UP;
 			printTree(al->list, level);
-			//LEVEL_DOWN;
+			LEVEL_DOWN;
 			struct _common *now = ((struct expression *)al->list)->list;
 			while(now){
-				//LEVEL_UP;
+				LEVEL_UP;
 				printTree(now, level);
-				//LEVEL_DOWN;
+				LEVEL_DOWN;
 				now = ((struct expression *)now)->list;
 			}
 		}
