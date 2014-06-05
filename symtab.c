@@ -233,6 +233,26 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 	}
 }
 
+void _buildSymtabPass2(struct _common *data, struct symtab *_context){
+	if(data)
+	switch(data->type){
+		case declaration_list:
+			{
+				struct declaration_list *dl = (struct declaration_list *)data;
+				Elem *find_declaration;
+				for(find_declaration = list_begin(dl->list);
+					find_declaration != list_end(dl->list);
+					find_declaration = list_next(find_declaration)){
+						struct _declaration *this = list_entry(find_declaration, struct _declaration, elem);
+						_buildSymtabPass2((struct _common *)this, dl->symtab);
+				}
+			}
+			break;
+		default:
+			break;
+	}
+}
+
 #define TAPING do{ \
 	int i; \
 	for(i=0;i<level;i++) \
@@ -378,6 +398,7 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 
 void buildSymtab(Program *prog){
 	_buildSymtab((struct _common *)prog, NULL, false);
+	_buildSymtabPass2((struct _common *)prog, NULL);
 	if(TraceAnalyze){
 		ALLOC(list, List);
 		list_init(list);
