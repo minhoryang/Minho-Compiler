@@ -263,6 +263,8 @@ void _dumpSymtab(struct symtab *this, int level){
 		find_symbols != list_end(this->symbols);
 		find_symbols = list_next(find_symbols)){
 			struct _declaration *c = list_entry(find_symbols, struct _declaration, symelem);
+			if(c->type == fun_declaration)
+				continue;
 			TAPING printf("%3d:%2d\t%s\t%s", c->line+1, c->cur+1, c->type_specifier, c->name);
 			switch(c->type){
 				case var_declaration:
