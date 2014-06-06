@@ -1,12 +1,13 @@
 #include "symtab.h"
 
-struct symtab * _allocSymtab(const char *name){
+struct symtab * _allocSymtab(const char *name, struct symtab *_parent){
 	struct symtab *st = _ALLOC(struct symtab);
 	st->name = strdup(name);
 	st->symbols = _ALLOC(List);
 	list_init(st->symbols);
 	st->usings = _ALLOC(List);
 	list_init(st->usings);
+	st->parent = _parent;
 	return st;
 }
 
@@ -16,7 +17,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case declaration_list:
 			{
 				struct declaration_list *dl = (struct declaration_list *)data;
-				dl->symtab = _allocSymtab("Global");
+				dl->symtab = _allocSymtab("Global", _context);
 				Elem *find_declaration;
 				for(find_declaration = list_begin(dl->list);
 					find_declaration != list_end(dl->list);
@@ -36,7 +37,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				list_push_back(_context->symbols, &(fd->symelem));
-				fd->symtab = _allocSymtab(fd->name);
+				fd->symtab = _allocSymtab(fd->name, _context);
 				_buildSymtab((struct _common *)fd->params, fd->symtab, false);
 				_buildSymtab((struct _common *)fd->compound_stmt, fd->symtab, true);
 			}
@@ -64,7 +65,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				struct compound_stmt *cs = (struct compound_stmt *)data;
 				struct symtab *context;
 				if(!func_exception){
-					context = (cs->symtab = _allocSymtab(strdup(_context->name)));
+					context = (cs->symtab = _allocSymtab(_context->name, _context));
 				}else{
 					context = _context;
 					cs->symtab = NULL;
@@ -198,8 +199,10 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				switch(f->contenttype){
 					case expression:
 						_buildSymtab((struct _common *)f->content.expression, _context, false);
+						break;
 					case var:
 						_buildSymtab((struct _common *)f->content.var, _context, false);
+						break;
 					case call:
 						_buildSymtab((struct _common *)f->content.call, _context, false);
 						break;
@@ -270,6 +273,16 @@ void _dumpSymtab(struct symtab *this, int level){
 					break;
 			}
 			printf(";\n");
+			{
+				Elem *find_using;
+				for(find_using = list_begin(this->usings);
+					find_using != list_end(this->usings);
+					find_using = list_next(find_using)){
+						struct _symbol_common *sc = list_entry(find_using, struct _symbol_common, symelem);
+						//printf("sc %s %X\n", sc->name, sc);
+						//sleep(1);
+				}
+			}
 	}
 }
 

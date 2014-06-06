@@ -11,6 +11,7 @@ struct symtab{
 	List *symbols;
 	List *usings;
 	char *name;  // TODO parent?
+	struct symtab *parent;
 };
 
 void buildSymtab(Program *prog);
