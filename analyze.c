@@ -86,6 +86,31 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 				}
 			}
 			break;
+		case factor:
+			/*{
+				struct factor *f = (struct factor *)data;
+				// 1. call일때!
+				if(f->contenttype == call){
+					char *funcname = f->content.call->name;
+					struct symtab *func_where = searchSymtabWhere(_context, funcname);
+					struct fun_declaration *func = searchSymtab(func_where, funcname);
+					// 선언이 안되어있으면 안됨.
+					if(!func){
+						printf("ERROR!\n");
+					}else{
+						// 리턴값이 void면 안됨.
+						if(strcmp(func->type_specifier, "void") == 0){
+							printf("ERROR!\n");
+						}
+					}
+				}
+			}*/
+			break;
+		case call:
+			{
+				;
+			}
+			break;
 		default:
 			break;
 	}
@@ -115,11 +140,22 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context){
 			{
 				_typeCheck(data, _context);
 				struct fun_declaration *fd = (struct fun_declaration *)data;
+				_typeCheckLoop((struct _common *)fd->params, fd->symtab);
 				_typeCheckLoop((struct _common *)fd->compound_stmt, fd->symtab);
 			}
 			break;
 		case param_list:
+			{
 			_typeCheck(data, _context);
+				struct param_list *pl = (struct param_list *)data;
+				Elem *find_param;
+				for(find_param = list_begin(pl->list);
+					find_param != list_end(pl->list);
+					find_param = list_next(find_param)){
+						struct param *this = list_entry(find_param, struct param, elem);
+						_typeCheckLoop((struct _common *)this, _context);
+				}
+			}
 			break;
 		case param:
 			_typeCheck(data, _context);
@@ -135,7 +171,17 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context){
 			}
 			break;
 		case local_declarations:
+			{
 			_typeCheck(data, _context);
+				struct local_declarations *ld = (struct local_declarations *)data;
+				Elem *find_local_declarations;
+				for(find_local_declarations = list_begin(ld->list);
+					find_local_declarations != list_end(ld->list);
+					find_local_declarations = list_next(find_local_declarations)){
+						struct var_declaration *vd = list_entry(find_local_declarations, struct var_declaration, elem);
+						_typeCheckLoop((struct _common *)vd, _context);
+				}
+			}
 			break;
 		case statement_list:
 			{
@@ -151,7 +197,12 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context){
 			}
 			break;
 		case expression_stmt:
+			{
 			_typeCheck(data, _context);
+				struct expression_stmt *es = (struct expression_stmt *)data;
+				if(es->expression)
+					_typeCheckLoop((struct _common *)es->expression, _context);
+			}
 			break;
 		case selection_stmt:
 			{
@@ -174,31 +225,113 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context){
 			}
 			break;
 		case return_stmt:
+			{
 			_typeCheck(data, _context);
+				struct return_stmt *rs = (struct return_stmt *)data;
+				if(rs->return_expression)
+					_typeCheckLoop((struct _common *)rs->return_expression, _context);
+			}
 			break;
 		case expression:
+			{
 			_typeCheck(data, _context);
+				struct expression *e = (struct expression *)data;
+				if(e->isAssign){
+					if(e->var)
+						_typeCheckLoop((struct _common *)e->var, _context);
+					if(e->expression)
+						_typeCheckLoop((struct _common *)e->expression, _context);
+				}else{
+					if(e->simple_expression)
+						_typeCheckLoop((struct _common *)e->simple_expression, _context);
+				}
+			}
 			break;
 		case var:
 			_typeCheck(data, _context);
 			break;
 		case simple_expression:
+			{
 			_typeCheck(data, _context);
+				struct simple_expression *se = (struct simple_expression *)data;
+				if(se->left){
+					_typeCheckLoop((struct _common *)se->left, _context);
+				}
+				if(se->relop){
+					if(se->right){
+						_typeCheckLoop((struct _common *)se->right, _context);
+					}
+				}
+			}
 			break;
 		case additive_expression:
+			{
 			_typeCheck(data, _context);
+				struct additive_expression *ae = (struct additive_expression *)data;
+				if(ae->addop){
+					if(ae->additive_expression){
+						_typeCheckLoop((struct _common *)ae->additive_expression, _context);
+					}
+				}
+				if(ae->term){
+					_typeCheckLoop((struct _common *)ae->term, _context);
+				}
+			}
 			break;
 		case term:
+			{
 			_typeCheck(data, _context);
+				struct term *t = (struct term *)data;
+				if(t->mulop){
+					if(t->term){
+						_typeCheckLoop((struct _common *)t->term, _context);
+					}
+				}
+				if(t->factor){
+					_typeCheckLoop((struct _common *)t->factor, _context);
+				}
+			}
 			break;
 		case factor:
+			{
 			_typeCheck(data, _context);
+				struct factor *f = (struct factor *)data;
+				switch(f->contenttype){
+					case expression:
+						_typeCheckLoop((struct _common *)f->content.expression, _context);
+						break;
+					case var:
+						_typeCheckLoop((struct _common *)f->content.var, _context);
+						break;
+					case call:
+						_typeCheckLoop((struct _common *)f->content.call, _context);
+						break;
+					case num:
+						break;
+				}
+			}
 			break;
 		case call:
+			{
 			_typeCheck(data, _context);
+				struct call *c = (struct call *)data;
+				if(c->args){
+					_typeCheckLoop((struct _common *)c->args, _context);
+				}
+			}
 			break;
 		case arg_list:
+			{
 			_typeCheck(data, _context);
+				struct arg_list *al = (struct arg_list *)data;
+				Elem *find_arg_list;
+				for(find_arg_list = list_begin(al->list);
+					find_arg_list != list_end(al->list);
+					find_arg_list = list_next(find_arg_list)){
+						struct expression *e = list_entry(find_arg_list, struct expression, elem);
+						_typeCheckLoop((struct _common *)e, _context);
+				}
+			}
 			break;
 		default:
 			break;

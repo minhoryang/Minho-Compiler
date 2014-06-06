@@ -438,13 +438,15 @@ struct symtab *searchSymtabWhere(struct symtab *from, char *this){
 
 struct _symbol_common *searchSymtab(struct symtab *from, char *this){
 	Elem *e;
-	for(e = list_begin(from->symbols);
-		e != list_end(from->symbols);
-		e = list_next(e)){
-			struct _symbol_common *c = list_entry(e, struct _symbol_common, symelem);
-			if(strcmp(c->name, this) == 0){
-				return c;
-			}
+	if(from){
+		for(e = list_begin(from->symbols);
+			e != list_end(from->symbols);
+			e = list_next(e)){
+				struct _symbol_common *c = list_entry(e, struct _symbol_common, symelem);
+				if(strcmp(c->name, this) == 0){
+					return c;
+				}
+		}
 	}
 	return NULL;
 }
