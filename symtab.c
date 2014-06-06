@@ -299,7 +299,7 @@ void _dumpSymtab(struct symtab *this, int level){
 								printf("\t @  ");
 								isInit = true;
 							}
-							printf("%d ", sc->line);
+							printf("%d ", sc->line+1);
 						}
 				}
 			}

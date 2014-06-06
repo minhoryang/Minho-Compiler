@@ -198,11 +198,11 @@ iteration_stmt : WHILE LEFT_PARENTHESIS expression RIGHT_PARENTHESIS _statement
                ;
 return_stmt : RETURN SEMI
                 {
-					$$.link = new_return_stmt(NULL);
+					$$.link = new_return_stmt(NULL, $1.line, $1.cur);
 				}
             | RETURN expression SEMI
 			    {
-					$$.link = new_return_stmt($2.link);
+					$$.link = new_return_stmt($2.link, $1.line, $1.cur);
 				}
 			;
 expression : var ASSIGN expression
@@ -265,19 +265,19 @@ _mulop : TIMES
 	   ;
 factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
            {
-			   $$.link = new_factor($2.link, expression);
+			   $$.link = new_factor($2.link, expression, $1.line, $1.cur);
 		   }
        | var
            {
-			   $$.link = new_factor($1.link, var);
+			   $$.link = new_factor($1.link, var, $1.line, $1.cur);
 		   }
 	   | call
            {
-			   $$.link = new_factor($1.link, call);
+			   $$.link = new_factor($1.link, call, $1.line, $1.cur);
 		   }
 	   | NUM
            {
-			   $$.link = new_factor($1.lexeme, num);
+			   $$.link = new_factor($1.lexeme, num, $1.line, $1.cur);
 		   }
 call : ID LEFT_PARENTHESIS _args RIGHT_PARENTHESIS
          {

@@ -22,11 +22,11 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 				struct var_declaration *vd = (struct var_declaration *)data;
 			  	// 1. 같은 scope에 중복된 이름이 있는지?
 				if(_countSymbol(_context, vd->name) > 1){
-					printf("같은 이름의 변수가 있습니다.\n");
+					printf("%3d:%2d\t같은 이름(%s)의 변수가 있습니다.\n", vd->line+1, vd->cur+1, vd->name);
 				}
 				// 2. void type이면 안됨.
 				if(strcmp(vd->type_specifier, "void") == 0){
-					printf("Void형의 변수는 선언할 수 없습니다.\n");
+					printf("%3d:%2d\tVoid형의 변수(%s)는 선언할 수 없습니다.\n", vd->line+1, vd->cur+1, vd->name);
 				}
 			}
 			break;
@@ -35,11 +35,11 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				// 1. 같은 scope에 중복된 이름이 있는지?
 				if(_countSymbol(_context, fd->name) > 1){
-					printf("같은 이름의 함수가 있습니다.\n");
+					printf("%3d:%2d\t같은 이름(%s)의 함수가 있습니다.\n", fd->line+1, fd->cur+1, fd->name);
 				}
 				// 2. global에서 함수선언인지?
 				if(strcmp(_context->name, "Global")){
-					printf("함수는 Global에서 선언해야 합니다.\n");
+					printf("%3d:%2d\t %s 함수는 Global에서 선언해야 합니다.\n", fd->line+1, fd->cur+1, fd->name);
 				}
 				// 3. main함수일경우
 				if(strcmp(fd->name, "main") == 0){
@@ -47,11 +47,11 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 					// TODO
 					// 3-2. 리턴값이 void
 					if(strcmp(fd->type_specifier, "void")){
-						printf("Main함수의 리턴값은 Void여야합니다.\n");
+						printf("%3d:%2d\tMain함수의 리턴값은 Void여야합니다.\n", fd->line+1, fd->cur+1);
 					}
 					// 3-3. 파라메터가 없어야함.
 					if(fd->params){
-						printf("Main함수의 파라메터는 없어야합니다.\n");
+						printf("%3d:%2d\tMain함수의 파라메터는 없어야합니다.\n", fd->line+1, fd->cur+1);
 					}
 				}
 			}
@@ -61,11 +61,11 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 				struct param *p = (struct param *)data;
 				// 1. 같은 scope에 중복된 이름이 있는지?
 				if(_countSymbol(_context, p->name) > 1){
-					printf("중복 변수입니다.\n");
+					printf("%3d:%2d\t중복 변수(%s)입니다.\n", p->line+1, p->cur+1, p->name);
 				}
 				// 2. void타입인지?
 				if(strcmp(p->type_specifier, "void") == 0){
-					printf("파라메타는 Void타입이면 안됩니다.\n");
+					printf("%3d:%2d\t파라메타(%s)는 Void타입이면 안됩니다.\n", p->line+1, p->cur+1, p->name);
 				}
 			}
 			break;
@@ -77,11 +77,11 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 				struct fun_declaration *func = searchSymtab(func_where, _context->name);
 				if(strcmp(func->type_specifier, "int") == 0){
 					if(!rs->return_expression){
-						printf("함수 선언은 Int이나 리턴값이 없습니다.\n");
+						printf("%3d:%2d\t함수(%s) 선언은 Int이나 리턴값이 없습니다.\n", rs->line+1, rs->cur+1, _context->name);
 					}
 				}else if(strcmp(func->type_specifier, "void") == 0){
 					if(rs->return_expression){
-						printf("함수 선언은 Void이나 리턴값이 있습니다.\n");
+						printf("%3d:%2d\t함수(%s) 선언은 Void이나 리턴값이 있습니다.\n", rs->line+1, rs->cur+1, _context->name);
 					}
 				}
 			}
@@ -100,11 +100,17 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 					struct fun_declaration *func = searchSymtab(func_where, funcname);
 					// 선언이 안되어있으면 안됨.
 					if(!func){
-						printf("선언이 안되어 있는 call입니다.!\n");
+						if(strcmp(funcname, "input") == 0){
+							;
+						}else if(strcmp(funcname, "output") == 0){
+							;
+						}else{
+							printf("%3d:%2d\t선언이 안되어 있는 call(%s)입니다.!\n", f->line+1, f->cur+1, funcname);
+						}
 					}else{
 						// 리턴값이 void면 안됨.
 						if(strcmp(func->type_specifier, "void") == 0){
-							printf("void를 리턴하려고 했습니다.!\n");
+							printf("%3d:%2d\t%s 함수가 void를 리턴하려고 했습니다.!\n", f->line+1, f->cur+1, funcname);
 						}
 					}
 				}

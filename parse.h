@@ -198,7 +198,7 @@ struct selection_stmt *new_selection_stmt(
 struct iteration_stmt *new_iteration_stmt(
 		struct expression *condition,
 		struct _statement *action);
-struct return_stmt *new_return_stmt(struct expression *return_expression);
+struct return_stmt *new_return_stmt(struct expression *return_expression, int line, int cur);
 struct expression *new_expression_assign(
 		struct var *var,
 		struct expression *expression_);
@@ -217,7 +217,7 @@ struct term *new_term(
 		struct term *term_,
 		char *mulop,
 		struct factor *factor_);
-struct factor *new_factor(void *ptr, class type);
+struct factor *new_factor(void *ptr, class type, int line, int cur);
 struct call *new_call(char *id, struct arg_list *args, int line, int cur);
 struct arg_list *new_arg_list();
 

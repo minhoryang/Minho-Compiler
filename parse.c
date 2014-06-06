@@ -186,10 +186,12 @@ struct iteration_stmt *new_iteration_stmt(
 	return one;
 }
 
-struct return_stmt *new_return_stmt(struct expression *return_expression){
+struct return_stmt *new_return_stmt(struct expression *return_expression, int line, int cur){
 	ALLOC(one, struct return_stmt);
 	one->type = return_stmt;
 	one->return_expression = return_expression;
+	one->line = line;
+	one->cur = cur;
 	return one;
 }
 
@@ -259,9 +261,11 @@ struct term *new_term(
 	return one;
 }
 
-struct factor *new_factor(void *ptr, class type){
+struct factor *new_factor(void *ptr, class type, int line, int cur){
 	ALLOC(one, struct factor);
 	one->type = factor;
+	one->line = line;
+	one->cur = cur;
 	switch(type){
 		case expression:
 			one->contenttype = type;
