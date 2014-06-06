@@ -216,11 +216,11 @@ expression : var ASSIGN expression
 		   ;
 var : ID
         {
-			$$.link = new_var($1.lexeme, NULL);
+			$$.link = new_var($1.lexeme, NULL, $1.line, $1.cur);
 		}
     | ID LEFT_BRACKET expression RIGHT_BRACKET
 	    {
-			$$.link = new_var($1.lexeme, $3.link);
+			$$.link = new_var($1.lexeme, $3.link, $1.line, $1.cur);
 		}
 	;
 simple_expression : additive_expression _relop additive_expression
@@ -281,7 +281,7 @@ factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
 		   }
 call : ID LEFT_PARENTHESIS _args RIGHT_PARENTHESIS
          {
-			 $$.link = new_call($1.lexeme, $3.link);
+			 $$.link = new_call($1.lexeme, $3.link, $1.line, $1.cur);
 		 }
      ;
 _args : arg_list

@@ -204,7 +204,7 @@ struct expression *new_expression_assign(
 		struct expression *expression_);
 struct expression *new_expression_simple(
 		struct simple_expression *simple_expression);
-struct var *new_var(char *id, struct expression *array);
+struct var *new_var(char *id, struct expression *array, int line, int cur);
 struct simple_expression *new_simple_expression(
 		struct additive_expression *left,
 		char *relop,
@@ -218,7 +218,7 @@ struct term *new_term(
 		char *mulop,
 		struct factor *factor_);
 struct factor *new_factor(void *ptr, class type);
-struct call *new_call(char *id, struct arg_list *args);
+struct call *new_call(char *id, struct arg_list *args, int line, int cur);
 struct arg_list *new_arg_list();
 
 #include "parse_dump.h"

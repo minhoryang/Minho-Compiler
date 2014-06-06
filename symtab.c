@@ -286,19 +286,25 @@ void _dumpSymtab(struct symtab *this, int level){
 					}
 					break;
 			}
-			printf(";\n");
-	}
+			printf(";");
+			bool isInit = false;
 			{
 				Elem *find_using;
 				for(find_using = list_begin(this->usings);
 					find_using != list_end(this->usings);
 					find_using = list_next(find_using)){
 						struct _symbol_common *sc = list_entry(find_using, struct _symbol_common, symelem);
-						printf("%s  ", sc->name, sc);
-						//sleep(1);
+						if(strcmp(sc->name, c->name) == 0){
+							if(!isInit){
+								printf("\t @  ");
+								isInit = true;
+							}
+							printf("%d ", sc->line);
+						}
 				}
-				printf("\n");
 			}
+			printf("\n");
+	}
 }
 
 void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){

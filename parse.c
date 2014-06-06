@@ -213,11 +213,13 @@ struct expression *new_expression_simple(
 	return one;
 }
 
-struct var *new_var(char *id, struct expression *array){
+struct var *new_var(char *id, struct expression *array, int line, int cur){
 	ALLOC(one, struct var);
 	one->type = var;
 	one->name = id;
 	one->array = array;
+	one->line = line;
+	one->cur = cur;
 	return one;
 }
 
@@ -281,11 +283,13 @@ struct factor *new_factor(void *ptr, class type){
 	return one;
 }
 
-struct call *new_call(char *id, struct arg_list *args){
+struct call *new_call(char *id, struct arg_list *args, int line, int cur){
 	ALLOC(one, struct call);
 	one->type = call;
 	one->name = id;
 	one->args = args;
+	one->line = line;
+	one->cur = cur;
 	return one;
 }
 
