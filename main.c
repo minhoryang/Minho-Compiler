@@ -32,7 +32,7 @@ FILE * code;
 
 /* allocate and set tracing flags */
 int EchoSource = TRUE;
-int TraceParse = TRUE;
+int TraceParse = FALSE;
 int TraceAnalyze = TRUE;
 int TraceCode = FALSE;
 
