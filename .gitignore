@@ -5,7 +5,7 @@
 #       util.o
 #       yywrap.o
 *.o
-20091631
+project3_3
 lex.yy.c
 y.tab.c
 y.tab.h
