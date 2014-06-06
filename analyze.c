@@ -14,7 +14,7 @@ int _countSymbol(struct symtab *from, char *this){
 	return i;
 }
 
-void _typeCheck(struct _common *data, struct symtab *_context){
+void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidCall){
 	if(data)
 	switch(data->type){
 		case var_declaration:
@@ -22,11 +22,11 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 				struct var_declaration *vd = (struct var_declaration *)data;
 			  	// 1. 같은 scope에 중복된 이름이 있는지?
 				if(_countSymbol(_context, vd->name) > 1){
-					printf("ERROR!\n");
+					printf("같은 이름의 변수가 있습니다.\n");
 				}
 				// 2. void type이면 안됨.
 				if(strcmp(vd->type_specifier, "void") == 0){
-					printf("ERROR!\n");
+					printf("Void형의 변수는 선언할 수 없습니다.\n");
 				}
 			}
 			break;
@@ -35,11 +35,11 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				// 1. 같은 scope에 중복된 이름이 있는지?
 				if(_countSymbol(_context, fd->name) > 1){
-					printf("ERROR!\n");
+					printf("같은 이름의 함수가 있습니다.\n");
 				}
 				// 2. global에서 함수선언인지?
 				if(strcmp(_context->name, "Global")){
-					printf("ERROR!\n");
+					printf("함수는 Global에서 선언해야 합니다.\n");
 				}
 				// 3. main함수일경우
 				if(strcmp(fd->name, "main") == 0){
@@ -47,11 +47,11 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 					// TODO
 					// 3-2. 리턴값이 void
 					if(strcmp(fd->type_specifier, "void")){
-						printf("ERROR!\n");
+						printf("Main함수의 리턴값은 Void여야합니다.\n");
 					}
 					// 3-3. 파라메터가 없어야함.
 					if(fd->params){
-						printf("ERROR!\n");
+						printf("Main함수의 파라메터는 없어야합니다.\n");
 					}
 				}
 			}
@@ -61,11 +61,11 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 				struct param *p = (struct param *)data;
 				// 1. 같은 scope에 중복된 이름이 있는지?
 				if(_countSymbol(_context, p->name) > 1){
-					printf("ERROR!\n");
+					printf("중복 변수입니다.\n");
 				}
 				// 2. void타입인지?
 				if(strcmp(p->type_specifier, "void") == 0){
-					printf("ERROR!\n");
+					printf("파라메타는 Void타입이면 안됩니다.\n");
 				}
 			}
 			break;
@@ -77,17 +77,21 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 				struct fun_declaration *func = searchSymtab(func_where, _context->name);
 				if(strcmp(func->type_specifier, "int") == 0){
 					if(!rs->return_expression){
-						printf("ERROR!\n");
+						printf("함수 선언은 Int이나 리턴값이 없습니다.\n");
 					}
 				}else if(strcmp(func->type_specifier, "void") == 0){
 					if(rs->return_expression){
-						printf("ERROR!\n");
+						printf("함수 선언은 Void이나 리턴값이 있습니다.\n");
 					}
 				}
 			}
 			break;
 		case factor:
-			/*{
+			if(!_isAbleVoidCall){
+				/* VoidCall이 안되는 다음과 같은 상황일때!
+				 * 1. while/if
+				 * 2. mulop/addop/..
+				 */
 				struct factor *f = (struct factor *)data;
 				// 1. call일때!
 				if(f->contenttype == call){
@@ -96,15 +100,15 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 					struct fun_declaration *func = searchSymtab(func_where, funcname);
 					// 선언이 안되어있으면 안됨.
 					if(!func){
-						printf("ERROR!\n");
+						printf("선언이 안되어 있는 call입니다.!\n");
 					}else{
 						// 리턴값이 void면 안됨.
 						if(strcmp(func->type_specifier, "void") == 0){
-							printf("ERROR!\n");
+							printf("void를 리턴하려고 했습니다.!\n");
 						}
 					}
 				}
-			}*/
+			}
 			break;
 		case call:
 			{
@@ -116,7 +120,7 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 	}
 }
 
-void _typeCheckLoop(struct _common *data, struct symtab *_context){
+void _typeCheckLoop(struct _common *data, struct symtab *_context, bool _isAbleVoidCall){
 	if(data)
 	switch(data->type){
 		case declaration_list:
@@ -127,184 +131,184 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context){
 					find_declaration != list_end(dl->list);
 					find_declaration = list_next(find_declaration)){
 						struct _declaration *this = list_entry(find_declaration, struct _declaration, elem);
-						_typeCheckLoop((struct _common *)this, dl->symtab);
+						_typeCheckLoop((struct _common *)this, dl->symtab, _isAbleVoidCall);
 				}
 			}
 			break;
 		case var_declaration:
 			{
-				_typeCheck(data, _context);
+				_typeCheck(data, _context, _isAbleVoidCall);
 			}
 			break;
 		case fun_declaration:
 			{
-				_typeCheck(data, _context);
+				_typeCheck(data, _context, _isAbleVoidCall);
 				struct fun_declaration *fd = (struct fun_declaration *)data;
-				_typeCheckLoop((struct _common *)fd->params, fd->symtab);
-				_typeCheckLoop((struct _common *)fd->compound_stmt, fd->symtab);
+				_typeCheckLoop((struct _common *)fd->params, fd->symtab, _isAbleVoidCall);
+				_typeCheckLoop((struct _common *)fd->compound_stmt, fd->symtab, _isAbleVoidCall);
 			}
 			break;
 		case param_list:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct param_list *pl = (struct param_list *)data;
 				Elem *find_param;
 				for(find_param = list_begin(pl->list);
 					find_param != list_end(pl->list);
 					find_param = list_next(find_param)){
 						struct param *this = list_entry(find_param, struct param, elem);
-						_typeCheckLoop((struct _common *)this, _context);
+						_typeCheckLoop((struct _common *)this, _context, _isAbleVoidCall);
 				}
 			}
 			break;
 		case param:
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 			break;
 		case compound_stmt:
 			{
 				struct compound_stmt *cs = (struct compound_stmt *)data;
-				_typeCheck(data, _context);
+				_typeCheck(data, _context, _isAbleVoidCall);
 				if(cs->symtab)
-					_typeCheckLoop((struct _common *)cs->statement_list, cs->symtab);
+					_typeCheckLoop((struct _common *)cs->statement_list, cs->symtab, _isAbleVoidCall);
 				else
-					_typeCheckLoop((struct _common *)cs->statement_list, _context);
+					_typeCheckLoop((struct _common *)cs->statement_list, _context, _isAbleVoidCall);
 			}
 			break;
 		case local_declarations:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct local_declarations *ld = (struct local_declarations *)data;
 				Elem *find_local_declarations;
 				for(find_local_declarations = list_begin(ld->list);
 					find_local_declarations != list_end(ld->list);
 					find_local_declarations = list_next(find_local_declarations)){
 						struct var_declaration *vd = list_entry(find_local_declarations, struct var_declaration, elem);
-						_typeCheckLoop((struct _common *)vd, _context);
+						_typeCheckLoop((struct _common *)vd, _context, _isAbleVoidCall);
 				}
 			}
 			break;
 		case statement_list:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct statement_list *sl = (struct statement_list *)data;
 				Elem *find_statement_list;
 				for(find_statement_list = list_begin(sl->list);
 					find_statement_list != list_end(sl->list);
 					find_statement_list = list_next(find_statement_list)){
 						struct _statement *s = list_entry(find_statement_list, struct _statement, elem);
-						_typeCheckLoop((struct _common *)s, _context);
+						_typeCheckLoop((struct _common *)s, _context, _isAbleVoidCall);
 				}
 			}
 			break;
 		case expression_stmt:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct expression_stmt *es = (struct expression_stmt *)data;
 				if(es->expression)
-					_typeCheckLoop((struct _common *)es->expression, _context);
+					_typeCheckLoop((struct _common *)es->expression, _context, _isAbleVoidCall);
 			}
 			break;
 		case selection_stmt:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct selection_stmt *ss = (struct selection_stmt *)data;
 				if(ss->condition)
-					_typeCheckLoop((struct _common *)ss->condition, _context);
+					_typeCheckLoop((struct _common *)ss->condition, _context, false);
 				if(ss->action)
-					_typeCheckLoop((struct _common *)ss->action, _context);
+					_typeCheckLoop((struct _common *)ss->action, _context, _isAbleVoidCall);
 				if(ss->else_action)
-					_typeCheckLoop((struct _common *)ss->else_action, _context);
+					_typeCheckLoop((struct _common *)ss->else_action, _context, _isAbleVoidCall);
 			}
 			break;
 		case iteration_stmt:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct iteration_stmt *is = (struct iteration_stmt *)data;
 				if(is->action)
-					_typeCheckLoop((struct _common *)is->action, _context);
+					_typeCheckLoop((struct _common *)is->action, _context, false);
 			}
 			break;
 		case return_stmt:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct return_stmt *rs = (struct return_stmt *)data;
 				if(rs->return_expression)
-					_typeCheckLoop((struct _common *)rs->return_expression, _context);
+					_typeCheckLoop((struct _common *)rs->return_expression, _context, _isAbleVoidCall);
 			}
 			break;
 		case expression:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct expression *e = (struct expression *)data;
 				if(e->isAssign){
 					if(e->var)
-						_typeCheckLoop((struct _common *)e->var, _context);
+						_typeCheckLoop((struct _common *)e->var, _context, false);
 					if(e->expression)
-						_typeCheckLoop((struct _common *)e->expression, _context);
+						_typeCheckLoop((struct _common *)e->expression, _context, false);
 				}else{
 					if(e->simple_expression)
-						_typeCheckLoop((struct _common *)e->simple_expression, _context);
+						_typeCheckLoop((struct _common *)e->simple_expression, _context, _isAbleVoidCall);
 				}
 			}
 			break;
 		case var:
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 			break;
 		case simple_expression:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct simple_expression *se = (struct simple_expression *)data;
 				if(se->left){
-					_typeCheckLoop((struct _common *)se->left, _context);
+					_typeCheckLoop((struct _common *)se->left, _context, se->relop ? false : _isAbleVoidCall);
 				}
 				if(se->relop){
 					if(se->right){
-						_typeCheckLoop((struct _common *)se->right, _context);
+						_typeCheckLoop((struct _common *)se->right, _context, false);
 					}
 				}
 			}
 			break;
 		case additive_expression:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct additive_expression *ae = (struct additive_expression *)data;
 				if(ae->addop){
 					if(ae->additive_expression){
-						_typeCheckLoop((struct _common *)ae->additive_expression, _context);
+						_typeCheckLoop((struct _common *)ae->additive_expression, _context, false);
 					}
 				}
 				if(ae->term){
-					_typeCheckLoop((struct _common *)ae->term, _context);
+					_typeCheckLoop((struct _common *)ae->term, _context, ae->addop ? false : _isAbleVoidCall);
 				}
 			}
 			break;
 		case term:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct term *t = (struct term *)data;
 				if(t->mulop){
 					if(t->term){
-						_typeCheckLoop((struct _common *)t->term, _context);
+						_typeCheckLoop((struct _common *)t->term, _context, _isAbleVoidCall);
 					}
 				}
 				if(t->factor){
-					_typeCheckLoop((struct _common *)t->factor, _context);
+					_typeCheckLoop((struct _common *)t->factor, _context, t->mulop ? false : _isAbleVoidCall);
 				}
 			}
 			break;
 		case factor:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context ,_isAbleVoidCall);
 				struct factor *f = (struct factor *)data;
 				switch(f->contenttype){
 					case expression:
-						_typeCheckLoop((struct _common *)f->content.expression, _context);
+						_typeCheckLoop((struct _common *)f->content.expression, _context, _isAbleVoidCall);
 						break;
 					case var:
-						_typeCheckLoop((struct _common *)f->content.var, _context);
+						_typeCheckLoop((struct _common *)f->content.var, _context, _isAbleVoidCall);
 						break;
 					case call:
-						_typeCheckLoop((struct _common *)f->content.call, _context);
+						_typeCheckLoop((struct _common *)f->content.call, _context, _isAbleVoidCall);
 						break;
 					case num:
 						break;
@@ -313,23 +317,23 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context){
 			break;
 		case call:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct call *c = (struct call *)data;
 				if(c->args){
-					_typeCheckLoop((struct _common *)c->args, _context);
+					_typeCheckLoop((struct _common *)c->args, _context, _isAbleVoidCall);
 				}
 			}
 			break;
 		case arg_list:
 			{
-			_typeCheck(data, _context);
+			_typeCheck(data, _context, _isAbleVoidCall);
 				struct arg_list *al = (struct arg_list *)data;
 				Elem *find_arg_list;
 				for(find_arg_list = list_begin(al->list);
 					find_arg_list != list_end(al->list);
 					find_arg_list = list_next(find_arg_list)){
 						struct expression *e = list_entry(find_arg_list, struct expression, elem);
-						_typeCheckLoop((struct _common *)e, _context);
+						_typeCheckLoop((struct _common *)e, _context, _isAbleVoidCall);
 				}
 			}
 			break;
@@ -339,6 +343,6 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context){
 }
 
 void typeCheck(Program *prog){
-	_typeCheckLoop((struct _common *)prog, NULL);
+	_typeCheckLoop((struct _common *)prog, NULL, true);
 }
 
