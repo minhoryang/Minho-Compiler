@@ -1,7 +1,7 @@
-CFLAGS = -g -fms-extensions
+CFLAGS = -g -fms-extensions #-L ~/.local/lib -lduma
 
 20091631: lex.yy.o y.tab.o parse.o symtab.o main.o list.o
-	gcc -o 20091631 *.o
+	gcc $(CFLAGS) -o 20091631 *.o
 
 y.tab.c: c-.y
 y.tab.h: c-.y

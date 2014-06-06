@@ -51,6 +51,11 @@ typedef struct _statement{
 	_common_inherit;
 	Elem elem;
 }_statement_inherit;
+typedef struct _symbol_common{
+	_common_inherit;
+	Elem symelem;
+	char *name;
+}_symbol_common_inherit;
 
 typedef struct declaration_list{  // XXX done
 	_common_inherit;
@@ -58,11 +63,9 @@ typedef struct declaration_list{  // XXX done
 	struct symtab *symtab;
 }Program;
 typedef struct _declaration{  // XXX done
-	_common_inherit;
+	_symbol_common_inherit;
 	Elem elem;
-	Elem symelem;
 	char *type_specifier;
-	char *name;
 }_declaration_inherit;
 struct var_declaration{
 	_declaration_inherit;
@@ -130,10 +133,8 @@ struct expression{
 	Elem elem;
 };
 struct var{
-	_common_inherit;
-	char *name;
+	_symbol_common_inherit;
 	struct expression *array;  // optional
-	Elem symelem;
 };
 struct simple_expression{
 	_common_inherit;
@@ -168,10 +169,8 @@ struct factor{
 };
 
 struct call{
-	_common_inherit;
-	char *name;
+	_symbol_common_inherit;
 	struct arg_list *args;  // nullable
-	Elem symelem;
 };
 struct arg_list{
 	_common_inherit;

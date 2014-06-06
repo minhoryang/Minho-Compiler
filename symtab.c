@@ -57,6 +57,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			{
 				struct param *p = (struct param *)data;
 				list_push_back(_context->symbols, &(p->symelem));
+				break;
 			}
 		case compound_stmt:
 			{
