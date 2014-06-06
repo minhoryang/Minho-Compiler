@@ -98,7 +98,7 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 			break;
 		case expression_stmt:
 			{
-				struct expression *e = (struct expression *)data;
+				struct expression_stmt *e = (struct expression_stmt *)data;
 				if(e->expression)
 					_buildSymtab((struct _common *)e->expression, _context, false);
 			}

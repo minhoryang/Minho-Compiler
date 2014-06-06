@@ -47,6 +47,10 @@ typedef struct _common{
 	struct token;
 	class type;
 }_common_inherit;
+typedef struct _statement{
+	_common_inherit;
+	Elem elem;
+}_statement_inherit;
 
 typedef struct declaration_list{  // XXX done
 	_common_inherit;
@@ -82,7 +86,7 @@ struct param{
 };
 
 struct compound_stmt{
-	_common_inherit;
+	_statement_inherit;
 	struct local_declarations *local_declarations;
 	struct statement_list *statement_list;
 	struct symtab *symtab;
@@ -95,10 +99,6 @@ struct statement_list{
 	_common_inherit;
 	List *list;
 };
-typedef struct _statement{
-	_common_inherit;
-	Elem elem;
-}_statement_inherit;
 struct expression_stmt{
 	_statement_inherit;
 	struct expression *expression;
