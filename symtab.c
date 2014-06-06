@@ -149,7 +149,14 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 		case var:
 			{
 				struct var *v = (struct var *)data;
-				list_push_back(_context->usings, &(v->symelem));
+				{
+					struct symtab *found = searchSymtabWhere(_context, v->name);
+					if(found){
+						list_push_back(found->usings, &(v->symelem));
+					}else{
+						list_push_back(_context->usings, &(v->symelem));
+					}
+				}
 				if(v->array)
 					_buildSymtab((struct _common *)v->array, _context, false);
 			}
@@ -217,7 +224,14 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 				if(c->args){
 					_buildSymtab((struct _common *)c->args, _context, false);
 				}
-				list_push_back(_context->usings, &(c->symelem));
+				{
+					struct symtab *found = searchSymtabWhere(_context, c->name);
+					if(found){
+						list_push_back(found->usings, &(c->symelem));
+					}else{
+						list_push_back(_context->usings, &(c->symelem));
+					}
+				}
 			}
 			break;
 		case arg_list:
@@ -273,17 +287,18 @@ void _dumpSymtab(struct symtab *this, int level){
 					break;
 			}
 			printf(";\n");
+	}
 			{
 				Elem *find_using;
 				for(find_using = list_begin(this->usings);
 					find_using != list_end(this->usings);
 					find_using = list_next(find_using)){
 						struct _symbol_common *sc = list_entry(find_using, struct _symbol_common, symelem);
-						//printf("sc %s %X\n", sc->name, sc);
+						printf("%s  ", sc->name, sc);
 						//sleep(1);
 				}
+				printf("\n");
 			}
-	}
 }
 
 void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
@@ -404,4 +419,30 @@ void buildSymtab(Program *prog){
 
 void typeCheck(Program *prog){
 	;
+}
+
+struct symtab *searchSymtabWhere(struct symtab *from, char *this){
+	struct symtab *f = from;
+	while(f){
+		struct _symbol_common *found = searchSymtab(f, this);
+		if(found){
+			return f;
+		}else{
+			f = f->parent;
+		}
+	}
+	return NULL;
+}
+
+struct _symbol_common *searchSymtab(struct symtab *from, char *this){
+	Elem *e;
+	for(e = list_begin(from->symbols);
+		e != list_end(from->symbols);
+		e = list_next(e)){
+			struct _symbol_common *c = list_entry(e, struct _symbol_common, symelem);
+			if(strcmp(c->name, this) == 0){
+				return c;
+			}
+	}
+	return NULL;
 }
