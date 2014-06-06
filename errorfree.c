@@ -1,5 +1,5 @@
 /* fibonacci */
-int fibonacciiterative(int n)
+int iterate(int n)
 {
 	int a;
 	int b;
@@ -21,14 +21,14 @@ int fibonacciiterative(int n)
 	return b;
 }
 
-int fibonaccirecursive(int n)
+int recur(int n)
 {
 	if(n == 0)
 		return 0;
 	else if(n == 1)
 		return 1;
 	else if(n > 1)
-		return fibonaccirecursive(n-1) + fibonaccirecursive(n-2);
+		return recur(n-1) + recur(n-2);
 	else
 		return 0;
 }
@@ -38,7 +38,7 @@ void main(void){
 	int x;
 	int y;
 	x = input();
-	output(fibonacciiterative(x));
+	output(iterate(x));
 	y = input();
-	output(fibonaccirecursive(y));
+	output(recur(y));
 }

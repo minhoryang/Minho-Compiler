@@ -111,6 +111,11 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 						}
 					}else{
 						;// TODO 배열로 선언한 변수입니다. 
+						if(v->array){
+							;
+						}else{
+							;// 배열인데 배열이 아닌곳에 넣으려고함.
+						}
 					}
 				}
 			}
@@ -288,6 +293,11 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context, bool _isAbleV
 			break;
 		case var:
 			_typeCheck(data, _context, _isAbleVoidCall);
+			{
+				struct var *v = (struct var *)data;
+				if(v->array)
+					_typeCheckLoop((struct _common *)v->array, _context, false);
+			}
 			break;
 		case simple_expression:
 			{

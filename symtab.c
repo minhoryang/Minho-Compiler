@@ -251,11 +251,6 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 	}
 }
 
-#define TAPING do{ \
-	int i; \
-	for(i=0;i<level;i++) \
-		printf("\t"); \
-}while(false);
 void _dumpSymtab(struct symtab *this, int level){
 	// TODO list sort.
 	Elem *find_symbols;
@@ -263,21 +258,21 @@ void _dumpSymtab(struct symtab *this, int level){
 		find_symbols != list_end(this->symbols);
 		find_symbols = list_next(find_symbols)){
 			struct _declaration *c = list_entry(find_symbols, struct _declaration, symelem);
-			if(c->type == fun_declaration)
-				continue;
-			TAPING printf("%3d:%2d\t%s\t%s", c->line+1, c->cur+1, c->type_specifier, c->name);
+			printf("%s\t%s", c->type_specifier, c->name);
+			int i=strlen(c->name);
 			switch(c->type){
 				case var_declaration:
 					{
 						struct var_declaration *vd = (struct var_declaration *)c;
 						if(vd->size)
 							printf("[%s]", vd->size);
+						printf(";");
 					}
 					break;
 				case fun_declaration:
 					{
-						// TODO PARAM?
 						printf("()");
+						printf(";");
 					}
 					break;
 				case param:
@@ -285,10 +280,16 @@ void _dumpSymtab(struct symtab *this, int level){
 						struct param *p = (struct param *)c;
 						if(p->isArray)
 							printf("[]");
+						printf(";   (parameter)");
+						i += 10;
 					}
 					break;
 			}
-			printf(";");
+			if(i<5)
+				printf("\t\t");
+			else if(i<10)
+				printf("\t");
+			printf("\t%3dL %2dC", c->line+1, c->cur+1);
 			bool isInit = false;
 			{
 				Elem *find_using;
@@ -298,10 +299,10 @@ void _dumpSymtab(struct symtab *this, int level){
 						struct _symbol_common *sc = list_entry(find_using, struct _symbol_common, symelem);
 						if(strcmp(sc->name, c->name) == 0){
 							if(!isInit){
-								printf("\t @  ");
+								printf("     ");
 								isInit = true;
 							}
-							printf("%d ", sc->line+1);
+							printf("%3d ", sc->line+1);
 						}
 				}
 			}
@@ -317,8 +318,13 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 				struct declaration_list *dl = (struct declaration_list *)data;
 				{  // XXX IN!
 					list_push_front(_tables, &(dl->symtab->elem));
-					TAPING printf("%3d:%2d\tSCOPE %d: \"%s\"\n", dl->line+1, dl->cur+1, (*cnt)++, dl->symtab->name);
-					level+=1;
+					int c = printf("\nSCOPE %d: \"%s\"", ++level, dl->symtab->name);
+					c = 50-c;
+					while(c--)
+						printf(" ");
+					printf("(%d)\n", (*cnt)++);
+					printf("----------------------------------------------------------\n");
+					printf("Type\tName\t\t\tLine Char\t-Using Lines-\n");
 					_dumpSymtab(dl->symtab, level);
 				}
 				Elem *find_declaration;
@@ -340,8 +346,13 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 				struct fun_declaration *fd = (struct fun_declaration *)data;
 				{	// XXX IN!
 					list_push_front(_tables, &(fd->symtab->elem));
-					TAPING printf("%3d:%2d\tSCOPE %d: \"%s\"\n", fd->line+1, fd->cur+1, (*cnt)++, fd->symtab->name);
-					level+=1;
+					int c = printf("\nSCOPE %d: \"%s\"", ++level, fd->symtab->name);
+					c = 50-c;
+					while(c--)
+						printf(" ");
+					printf("(%d)\n", (*cnt)++);
+					printf("----------------------------------------------------------\n");
+					printf("Type\tName\t\t\tLine Char\t-Using Lines-\n");
 					_dumpSymtab(fd->symtab, level);
 				}
 				_traceSymtab((struct _common *)fd->compound_stmt, _tables, level, cnt);
@@ -358,8 +369,13 @@ void _traceSymtab(struct _common *data, List *_tables, int level, int *cnt){
 				struct compound_stmt *cs = (struct compound_stmt *)data;
 				if(cs->symtab){  // XXX IN!
 					list_push_front(_tables, &(cs->symtab->elem));
-					TAPING printf("%3d:%2d\tSCOPE %d: \"%s\"\n", cs->line+1, cs->cur+1, (*cnt)++, cs->symtab->name);
-					level+=1;
+					int c = printf("\nSCOPE %d: \"%s\" (compound_stmt)", ++level, cs->symtab->name);
+					c = 50-c;
+					while(c--)
+						printf(" ");
+					printf("(%d)\n", (*cnt)++);
+					printf("----------------------------------------------------------\n");
+					printf("Type\tName\t\t\tLine Char\t-Using Lines-\n");
 					_dumpSymtab(cs->symtab, level);
 				}
 				_traceSymtab((struct _common *)cs->statement_list, _tables, level, cnt);
