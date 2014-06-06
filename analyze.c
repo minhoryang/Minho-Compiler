@@ -68,6 +68,24 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 					printf("ERROR!\n");
 				}
 			}
+			break;
+		case return_stmt:
+			{
+				struct return_stmt *rs = (struct return_stmt *)data;
+				// 1. 함수선언부와 return 타입이 일치하는지
+				struct symtab *func_where = searchSymtabWhere(_context, _context->name);
+				struct fun_declaration *func = searchSymtab(func_where, _context->name);
+				if(strcmp(func->type_specifier, "int") == 0){
+					if(!rs->return_expression){
+						printf("ERROR!\n");
+					}
+				}else if(strcmp(func->type_specifier, "void") == 0){
+					if(rs->return_expression){
+						printf("ERROR!\n");
+					}
+				}
+			}
+			break;
 		default:
 			break;
 	}
@@ -156,11 +174,7 @@ void _typeCheckLoop(struct _common *data, struct symtab *_context){
 			}
 			break;
 		case return_stmt:
-			{
 			_typeCheck(data, _context);
-				struct return_stmt *rs = (struct return_stmt *)data;
-				printf("return %s\n", _context->name);
-			}
 			break;
 		case expression:
 			_typeCheck(data, _context);
