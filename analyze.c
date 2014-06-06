@@ -86,6 +86,35 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 				}
 			}
 			break;
+		case var:
+			{
+				struct var *v = (struct var *)data;
+				// 0. 있는 변수인지.
+				struct symtab *found_where = searchSymtabWhere(_context, v->name);
+				struct _symbol_common *found = searchSymtabWhere(found_where, v->name);
+				if(!found){
+					printf("%3d:%2d\t없는 변수(%s)입니다.\n", v->line+1, v->cur+1, v->name);
+				}else{
+					// 1. Array로 선언 안되어있는데 Array로 썻는지.
+					bool isArray;
+					if(found->type == var_declaration){
+						if(((struct var_declaration *)found)->size)
+							isArray = true;
+					}else if(found->type == param){
+						isArray = ((struct param *)found)->isArray;
+					}
+					if(!isArray){
+						if(v->array){
+							printf("%3d:%2d\t배열이 아닌 변수(%s)를 배열로 사용하였습니다.\n", v->line+1, v->cur+1, v->name);
+						}else{
+							// XXX 배열이 아닌 변수를 배열로 사용하지 않았습니다.
+						}
+					}else{
+						;// TODO 배열로 선언한 변수입니다. 
+					}
+				}
+			}
+			break;
 		case factor:
 			if(!_isAbleVoidCall){
 				/* VoidCall이 안되는 다음과 같은 상황일때!
