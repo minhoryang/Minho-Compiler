@@ -56,6 +56,18 @@ void _typeCheck(struct _common *data, struct symtab *_context){
 				}
 			}
 			break;
+		case param:
+			{
+				struct param *p = (struct param *)data;
+				// 1. 같은 scope에 중복된 이름이 있는지?
+				if(_countSymbol(_context, p->name) > 1){
+					printf("ERROR!\n");
+				}
+				// 2. void타입인지?
+				if(strcmp(p->type_specifier, "void") == 0){
+					printf("ERROR!\n");
+				}
+			}
 		default:
 			break;
 	}
