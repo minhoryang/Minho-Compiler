@@ -15,7 +15,6 @@ struct symtab{
 };
 
 void buildSymtab(Program *prog);
-void typeCheck(Program *prog);
 
 struct symtab *searchSymtabWhere(struct symtab *from, char *this);
 struct _symbol_common *searchSymtab(struct symtab *from, char *this);

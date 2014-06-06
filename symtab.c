@@ -423,10 +423,6 @@ void buildSymtab(Program *prog){
 	}
 }
 
-void typeCheck(Program *prog){
-	;
-}
-
 struct symtab *searchSymtabWhere(struct symtab *from, char *this){
 	struct symtab *f = from;
 	while(f){
