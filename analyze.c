@@ -43,8 +43,25 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 				}
 				// 3. main함수일경우
 				if(strcmp(fd->name, "main") == 0){
-					// 3-1. 가장 마지막에
-					// TODO
+					// 3-1. 가장 마지막에 선언되었나?
+					{
+						Elem *e;
+						int main_func = 0, max_func = 0;
+						for(e = list_begin(_context->symbols);
+							e != list_end(_context->symbols);
+							e = list_next(e)){
+							struct _symbol_common *sc = list_entry(e, struct _symbol_common, symelem);
+							if(sc->type == fun_declaration){
+								max_func++;
+								if(strcmp(sc->name, "main") == 0){
+									main_func = max_func;
+								}
+							}
+						}
+						if(main_func < max_func){
+							printf("%3d:%2d\t Main함수는 가장 마지막에 선언해야 합니다.\n", fd->line+1, fd->cur+1);
+						}
+					}
 					// 3-2. 리턴값이 void
 					if(strcmp(fd->type_specifier, "void")){
 						printf("%3d:%2d\tMain함수의 리턴값은 Void여야합니다.\n", fd->line+1, fd->cur+1);
@@ -115,6 +132,7 @@ void _typeCheck(struct _common *data, struct symtab *_context, bool _isAbleVoidC
 							;
 						}else{
 							;// 배열인데 배열이 아닌곳에 넣으려고함.
+							printf("%3d:%2d\t배열인 변수(%s)를 그냥 사용하였습니다.\n", v->line+1, v->cur+1, v->name);
 						}
 					}
 				}
