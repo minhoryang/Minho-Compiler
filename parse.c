@@ -1,5 +1,7 @@
 #include "parse.h"
 
+static int count = 1;
+
 Program * parse(void){
 	Program *ptr = NULL;
 	yyparse(&ptr);
@@ -91,6 +93,11 @@ struct var_declaration *new_var_declaration(char *type, char *id, char *size, in
 	one->type = var_declaration;
 	one->line = line;
 	one->cur = cur;
+	if(size){
+		one->location = (count+=atoi(size)-1) * -1;
+		count++;
+	}else
+		one->location = (count++) * -1;
 	return one;
 }
 
@@ -109,6 +116,7 @@ struct fun_declaration *new_fun_declaration(
 	one->type = fun_declaration;
 	one->line = line;
 	one->cur = cur;
+	one->location = (count++) * -1;
 	return one;
 }
 
@@ -128,6 +136,7 @@ struct param *new_param(char *type_specifier, char *id, bool isArray, int line, 
 	one->type = param;
 	one->line = line;
 	one->cur = cur;
+	one->location = (count++) * -1;
 	return one;
 }
 

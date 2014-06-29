@@ -55,6 +55,7 @@ typedef struct _symbol_common{
 	_common_inherit;
 	Elem symelem;
 	char *name;
+	int location;
 }_symbol_common_inherit;
 
 typedef struct declaration_list{  // XXX done
@@ -76,6 +77,7 @@ struct fun_declaration{
 	struct param_list* params;
 	struct compound_stmt *compound_stmt;
 	struct symtab *symtab;
+	int offset_for_call;
 };
 
 struct param_list{
@@ -171,6 +173,7 @@ struct factor{
 struct call{
 	_symbol_common_inherit;
 	struct arg_list *args;  // nullable
+	struct fun_declaration *real;
 };
 struct arg_list{
 	_common_inherit;

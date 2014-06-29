@@ -228,10 +228,13 @@ void _buildSymtab(struct _common *data, struct symtab *_context, bool func_excep
 					struct symtab *found = searchSymtabWhere(_context, c->name);
 					if(found){
 						list_push_back(found->usings, &(c->symelem));
+						c->real = (struct fun_declaration *)searchSymtab(found, c->name);
 					}else{
 						list_push_back(_context->usings, &(c->symelem));
+						c->real = NULL;
 					}
 				}
+				//printf("%s %X\n", c->name, c->real);
 			}
 			break;
 		case arg_list:
@@ -258,7 +261,7 @@ void _dumpSymtab(struct symtab *this, int level){
 		find_symbols != list_end(this->symbols);
 		find_symbols = list_next(find_symbols)){
 			struct _declaration *c = list_entry(find_symbols, struct _declaration, symelem);
-			printf("%s\t%s", c->type_specifier, c->name);
+			printf("%d\t%s\t%s", c->location, c->type_specifier, c->name);
 			int i=strlen(c->name);
 			switch(c->type){
 				case var_declaration:

@@ -13,7 +13,7 @@
 /* set NO_CODE to TRUE to get a compiler that does not
  * generate code
  */
-#define NO_CODE TRUE
+#define NO_CODE FALSE
 
 #include "parse.h"
 #if !NO_ANALYZE
@@ -34,7 +34,7 @@ FILE * code;
 int EchoSource = TRUE;
 int TraceParse = FALSE;
 int TraceAnalyze = TRUE;
-int TraceCode = FALSE;
+int TraceCode = TRUE;
 
 int Error = FALSE;
 
